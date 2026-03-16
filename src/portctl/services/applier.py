@@ -228,14 +228,13 @@ async def _apply_delete(
         if change.resource_type == "blueprint":
             await client.delete_blueprint(change.identifier)
         elif change.resource_type == "scorecard":
-            # For scorecard deletes, we need the blueprint_id. Since the scorecard
-            # is being deleted (remote-only), we look it up from the change context.
-            # The planner stores scorecard data with blueprint info in remote scorecards.
-            # For delete, the scorecard is remote-only so we pass the identifier
-            # and let the API figure it out via the stored blueprint association.
-            # We need to find which blueprint this scorecard belongs to.
-            # Since it's a remote-only scorecard, we can use the identifier directly.
-            await client.delete_scorecard(change.identifier, change.identifier)
+            # For scorecard deletes, we need the blueprint_id from the planner.
+            if change.parent_identifier is None:
+                raise ValueError(
+                    f"Cannot delete scorecard '{change.identifier}': "
+                    f"parent_identifier (blueprint) is not set"
+                )
+            await client.delete_scorecard(change.parent_identifier, change.identifier)
 
         logger.info("%s deleted: %s", change.resource_type.capitalize(), change.identifier)
         return ApplyResourceResult(

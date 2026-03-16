@@ -53,7 +53,11 @@ def login(
         org_name = org
         api_url = DEFAULT_API_URL
     else:
-        org_config = get_org(config, name=org)
+        try:
+            org_config = get_org(config, name=org)
+        except ConfigError as exc:
+            console.print(f"[red]{exc}[/red]")
+            raise typer.Exit(code=1) from None
         org_name = org if org is not None else config.default_org
         if org_name is None:
             console.print("[red]No default org set. Specify --org.[/red]")
@@ -67,7 +71,7 @@ def login(
         client_secret = typer.prompt("Client Secret", hide_input=True)
 
     try:
-        user_info = asyncio.get_event_loop().run_until_complete(
+        user_info = asyncio.run(
             verify_token(client_id, client_secret, api_url)
         )
     except AuthError as exc:
@@ -90,6 +94,7 @@ def status(
     ),
 ) -> None:
     """Show current authentication status."""
+    config = None
     try:
         config = load_config()
     except ConfigError:
@@ -98,9 +103,8 @@ def status(
                 "[red]No config file found. Run 'portctl org add' first.[/red]"
             )
             raise typer.Exit(code=1) from None
-        org_name = org
+        org_name: str = org
         api_url = DEFAULT_API_URL
-        config = None
     else:
         try:
             org_config = get_org(config, name=org)
@@ -113,11 +117,20 @@ def status(
             raise typer.Exit(code=1)
         api_url = org_config.api_url
 
+    if config is None:
+        console.print(
+            f"[bold]{org_name}[/bold]: [red]not configured[/red]"
+        )
+        console.print(
+            "  No config file found. Run 'portctl auth login' to store credentials."
+        )
+        raise typer.Exit(code=1)
+
     # Resolve credentials
     try:
         client_id, client_secret = resolve_credentials(
             org_name,
-            config,  # type: ignore[arg-type]
+            config,
         )
     except (AuthError, PortctlError) as exc:
         console.print(f"[bold]{org_name}[/bold]: [red]not configured[/red]")
@@ -126,7 +139,7 @@ def status(
 
     # Verify token is live
     try:
-        user_info = asyncio.get_event_loop().run_until_complete(
+        user_info = asyncio.run(
             verify_token(client_id, client_secret, api_url)
         )
     except AuthError:

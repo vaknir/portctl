@@ -32,6 +32,7 @@ class ResourceChange:
     action: Literal["create", "update", "delete", "unchanged"]
     diff: dict[str, Any] | None = None  # property-level diff for updates
     breaking: bool = False  # True if deletion with existing entities
+    parent_identifier: str | None = None  # e.g. blueprint ID for scorecards
 
 
 @dataclass
@@ -355,7 +356,7 @@ async def plan_org(
                     )
 
         # Remote only -> delete
-        for identifier in remote_scorecards:
+        for identifier, remote_data in remote_scorecards.items():
             if identifier not in local_scorecards:
                 changes.append(
                     ResourceChange(
@@ -363,7 +364,8 @@ async def plan_org(
                         identifier=identifier,
                         action="delete",
                         breaking=True,
+                        parent_identifier=remote_data.get("blueprint"),
                     )
                 )
 
-    return PlanResult(changes=changes)
+    return PlanResult(changes=changes, validation_result=validation_result)

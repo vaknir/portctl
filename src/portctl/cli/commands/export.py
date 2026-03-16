@@ -49,16 +49,18 @@ async def _export_run(org: str, resource: str | None, output_dir: Path) -> None:
         output_dir: Root directory for exported YAML files.
     """
     from portctl.client.port_client import PortClient
+    from portctl.services.auth import resolve_credentials
     from portctl.services.config import get_org, load_config
     from portctl.services.exporter import export_all
 
     config = load_config()
     org_config = get_org(config, org)
+    client_id, client_secret = resolve_credentials(org, config)
 
     with console.status("[blue]Exporting...[/blue]"):
         async with PortClient(
-            client_id=org_config.client_id,
-            client_secret=org_config.client_secret,
+            client_id=client_id,
+            client_secret=client_secret,
             api_base=org_config.api_url,
         ) as client:
             summary = await export_all(client, output_dir, resource=resource)

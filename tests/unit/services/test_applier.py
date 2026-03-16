@@ -346,6 +346,7 @@ class TestApplyDeleteOrder:
                     identifier="sc1",
                     action="delete",
                     breaking=True,
+                    parent_identifier="bp1",
                 ),
             ],
         )
