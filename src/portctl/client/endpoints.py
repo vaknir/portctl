@@ -12,13 +12,23 @@ BLUEPRINTS = "/blueprints"
 BLUEPRINT_BY_ID = "/blueprints/{identifier}"
 
 # Scorecards
-SCORECARDS = "/blueprints/{blueprint}/scorecards"
-SCORECARD_BY_ID = "/blueprints/{blueprint}/scorecards/{identifier}"
+SCORECARDS = "/blueprints/{blueprint_id}/scorecards"
+SCORECARD_BY_ID = "/blueprints/{blueprint_id}/scorecards/{identifier}"
 
 # Actions
-ACTIONS = "/blueprints/{blueprint}/actions"
-ACTION_BY_ID = "/blueprints/{blueprint}/actions/{identifier}"
+ACTIONS = "/blueprints/{blueprint_id}/actions"
+ACTION_BY_ID = "/blueprints/{blueprint_id}/actions/{identifier}"
 
 # Pages
 PAGES = "/pages"
 PAGE_BY_ID = "/pages/{identifier}"
+
+# Entities
+ENTITIES = "/blueprints/{blueprint_id}/entities"
+
+# Integrations
+INTEGRATIONS = "/integrations"
+INTEGRATION_LOGS = "/integrations/{integration_id}/logs"
+
+# User
+ME = "/me"
