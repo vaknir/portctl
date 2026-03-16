@@ -108,6 +108,30 @@ def load_config(path: Path | None = None) -> PortctlConfig:
         ) from exc
 
 
+def list_orgs(config: PortctlConfig) -> list[dict[str, str]]:
+    """Return a list of org info dicts for display.
+
+    Args:
+        config: The loaded portctl configuration.
+
+    Returns:
+        A list of dicts with keys: alias, name, role, api_url, default.
+        ``default`` is ``"*"`` for the default org and ``""`` otherwise.
+    """
+    result = []
+    for alias, org in config.orgs.items():
+        result.append(
+            {
+                "alias": alias,
+                "name": org.name,
+                "role": org.role,
+                "api_url": org.api_url,
+                "default": "*" if alias == config.default_org else "",
+            }
+        )
+    return result
+
+
 def get_org(config: PortctlConfig, name: str | None = None) -> OrgConfig:
     """Retrieve an organization config by name or default.
 
