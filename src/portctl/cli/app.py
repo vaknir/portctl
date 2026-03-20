@@ -13,6 +13,7 @@ from portctl.cli.commands.export import app as export_app
 from portctl.cli.commands.init import init_command
 from portctl.cli.commands.org import app as org_app
 from portctl.cli.commands.plan import app as plan_app
+from portctl.cli.commands.seed import app as seed_app
 from portctl.cli.commands.validate import app as validate_app
 from portctl.cli.commands.whoami import whoami  # noqa: I001
 from portctl.constants import VERSION
@@ -54,6 +55,7 @@ app.add_typer(plan_app, name="plan", help="Show a dry-run diff of local vs live 
 app.add_typer(apply_app, name="apply", help="Apply local YAML config to Port.io.")
 app.add_typer(validate_app, name="validate", help="Validate local YAML config.")
 app.add_typer(blueprint_app, name="blueprint", help="Inspect blueprints.")
+app.add_typer(seed_app, name="seed", help="Seed demo data.")
 
 
 def main() -> None:

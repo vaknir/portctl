@@ -25,6 +25,7 @@ PAGE_BY_ID = "/pages/{identifier}"
 
 # Entities
 ENTITIES = "/blueprints/{blueprint_id}/entities"
+ENTITY_BY_ID = "/blueprints/{blueprint_id}/entities/{identifier}"
 
 # Integrations
 INTEGRATIONS = "/integrations"

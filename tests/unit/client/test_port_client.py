@@ -399,6 +399,56 @@ class TestPortClientOther:
             result = await client.get_entities("service")
         assert result == [{"identifier": "my-svc"}]
 
+    async def test_upsert_entity(self) -> None:
+        """upsert_entity sends PUT and returns the entity."""
+
+        def handler(request: httpx.Request) -> httpx.Response:
+            path = _strip_base(request.url.path)
+            if path == AUTH_TOKEN:
+                return _auth_response()
+            if (
+                path == "/blueprints/service/entities/my-svc"
+                and request.method == "PUT"
+            ):
+                return httpx.Response(
+                    200,
+                    json={
+                        "ok": True,
+                        "entity": {"identifier": "my-svc", "title": "My Service"},
+                    },
+                )
+            return httpx.Response(404, json={"ok": False})
+
+        client = _make_client(handler=handler)
+        async with client:
+            result = await client.upsert_entity(
+                "service", {"identifier": "my-svc", "title": "My Service"}
+            )
+        assert result == {"identifier": "my-svc", "title": "My Service"}
+
+    async def test_delete_entity(self) -> None:
+        """delete_entity sends DELETE request."""
+        request_log: list[httpx.Request] = []
+
+        def handler(request: httpx.Request) -> httpx.Response:
+            request_log.append(request)
+            path = _strip_base(request.url.path)
+            if path == AUTH_TOKEN:
+                return _auth_response()
+            if (
+                path == "/blueprints/service/entities/my-svc"
+                and request.method == "DELETE"
+            ):
+                return httpx.Response(200, json={"ok": True})
+            return httpx.Response(404, json={"ok": False})
+
+        client = _make_client(handler=handler)
+        async with client:
+            await client.delete_entity("service", "my-svc")
+
+        delete_requests = [r for r in request_log if r.method == "DELETE"]
+        assert len(delete_requests) == 1
+
     async def test_get_integrations(self) -> None:
         """get_integrations returns list of integrations."""
         client = _make_client(

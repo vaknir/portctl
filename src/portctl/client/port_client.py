@@ -14,6 +14,7 @@ from portctl.client.endpoints import (
     BLUEPRINT_BY_ID,
     BLUEPRINTS,
     ENTITIES,
+    ENTITY_BY_ID,
     INTEGRATION_LOGS,
     INTEGRATIONS,
     ME,
@@ -277,6 +278,33 @@ class PortClient:
         path = ENTITIES.format(blueprint_id=blueprint_id)
         data = await self._request("GET", path)
         return data.get("entities", [])  # type: ignore[no-any-return]
+
+    async def upsert_entity(
+        self, blueprint_id: str, data: dict[str, Any]
+    ) -> dict[str, Any]:
+        """Create or update an entity.
+
+        Args:
+            blueprint_id: Blueprint identifier the entity belongs to.
+            data: Entity data including 'identifier'.
+
+        Returns:
+            The upserted entity dictionary.
+        """
+        identifier = data["identifier"]
+        path = ENTITY_BY_ID.format(blueprint_id=blueprint_id, identifier=identifier)
+        response = await self._request("PUT", path, json=data)
+        return response.get("entity", {})  # type: ignore[no-any-return]
+
+    async def delete_entity(self, blueprint_id: str, identifier: str) -> None:
+        """Delete an entity.
+
+        Args:
+            blueprint_id: Blueprint identifier the entity belongs to.
+            identifier: Entity identifier to delete.
+        """
+        path = ENTITY_BY_ID.format(blueprint_id=blueprint_id, identifier=identifier)
+        await self._request("DELETE", path)
 
     # ── Integration operations ──────────────────────────────────────
 
