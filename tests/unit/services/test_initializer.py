@@ -41,7 +41,7 @@ class TestWriteConfigFile:
         assert data["orgs"]["my-org"]["api_url"] == "https://api.getport.io/v1"
 
     def test_write_config_file_no_credentials(self, tmp_path: Path) -> None:
-        """Config file does not contain any inline secrets."""
+        """Config file does not contain any inline secrets or credential placeholders."""
         config_dir = tmp_path / ".portctl"
         config_dir.mkdir()
         path = write_config_file(config_dir, "my-org", "https://api.getport.io/v1")
@@ -49,9 +49,9 @@ class TestWriteConfigFile:
         raw = path.read_text()
         data = yaml.safe_load(raw)
         org = data["orgs"]["my-org"]
-        # Credentials should use env var placeholders, not real values
-        assert org["client_id"] == "${PORT_CLIENT_ID}"
-        assert org["client_secret"] == "${PORT_CLIENT_SECRET}"
+        # Credentials should not be present in the config file at all
+        assert "client_id" not in org
+        assert "client_secret" not in org
 
     def test_write_config_file_creates_directory(self, tmp_path: Path) -> None:
         """Creates the config directory if it does not exist."""

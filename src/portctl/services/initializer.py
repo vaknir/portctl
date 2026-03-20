@@ -86,8 +86,6 @@ def write_config_file(config_dir: Path, org_name: str, api_url: str) -> Path:
         "orgs": {
             org_name: {
                 "name": org_name,
-                "client_id": "${PORT_CLIENT_ID}",
-                "client_secret": "${PORT_CLIENT_SECRET}",
                 "role": "development",
                 "api_url": api_url,
             },
