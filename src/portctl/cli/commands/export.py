@@ -4,12 +4,15 @@ from __future__ import annotations
 
 import asyncio
 from pathlib import Path
-from typing import Optional
+from typing import TYPE_CHECKING, Optional
 
 import typer
 from rich.console import Console
 
 from portctl.exceptions import PortctlError
+
+if TYPE_CHECKING:
+    from portctl.models.config import PortctlConfig
 
 app = typer.Typer(no_args_is_help=True)
 console = Console()
@@ -32,28 +35,33 @@ def export_run(
     ),
 ) -> None:
     """Export portal configuration from Port.io to local YAML files."""
+    from portctl.cli.guard import require_config
+
     output_dir = Path(output) if output is not None else Path.cwd()
+    config = require_config()
     try:
-        asyncio.run(_export_run(org, resource, output_dir))
+        asyncio.run(_export_run(org, resource, output_dir, config))
     except PortctlError as exc:
         console.print(f"[red]Error: {exc}[/red]")
         raise typer.Exit(code=1) from None
 
 
-async def _export_run(org: str, resource: str | None, output_dir: Path) -> None:
+async def _export_run(
+    org: str, resource: str | None, output_dir: Path, config: PortctlConfig
+) -> None:
     """Async implementation of the export command.
 
     Args:
         org: Organization alias from config.
         resource: Optional resource type filter.
         output_dir: Root directory for exported YAML files.
+        config: Validated portctl configuration.
     """
     from portctl.client.port_client import PortClient
     from portctl.services.auth import resolve_credentials
-    from portctl.services.config import get_org, load_config
+    from portctl.services.config import get_org
     from portctl.services.exporter import export_all
 
-    config = load_config()
     org_config = get_org(config, org)
     client_id, client_secret = resolve_credentials(org, config)
 

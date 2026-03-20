@@ -5,13 +5,16 @@ from __future__ import annotations
 import asyncio
 import subprocess
 from pathlib import Path
-from typing import Optional
+from typing import TYPE_CHECKING, Optional
 
 import typer
 from rich.console import Console
 
 from portctl.constants import STATE_FILE
 from portctl.exceptions import PortctlError
+
+if TYPE_CHECKING:
+    from portctl.models.config import PortctlConfig
 
 app = typer.Typer(no_args_is_help=True)
 console = Console()
@@ -39,8 +42,11 @@ def apply_run(
     ),
 ) -> None:
     """Apply local YAML configuration to Port.io."""
+    from portctl.cli.guard import require_config
+
+    config = require_config()
     try:
-        asyncio.run(_apply_run(org, yes, prune, resource))
+        asyncio.run(_apply_run(org, yes, prune, resource, config))
     except PortctlError as exc:
         console.print(f"[red]Error: {exc}[/red]")
         raise typer.Exit(code=1) from None
@@ -51,6 +57,7 @@ async def _apply_run(
     yes: bool,
     prune: bool,
     resource: str | None,
+    config: PortctlConfig,
 ) -> None:
     """Async implementation of the apply command.
 
@@ -59,6 +66,7 @@ async def _apply_run(
         yes: Whether to skip confirmation.
         prune: Whether to delete remote-only resources.
         resource: Optional resource type filter.
+        config: Validated portctl configuration.
     """
     from datetime import UTC, datetime
 
@@ -66,11 +74,10 @@ async def _apply_run(
     from portctl.client.port_client import PortClient
     from portctl.services.applier import apply_org
     from portctl.services.auth import resolve_credentials
-    from portctl.services.config import get_org, load_config
+    from portctl.services.config import get_org
     from portctl.services.planner import plan_org
     from portctl.services.state import ApplyEvent, record_apply
 
-    config = load_config()
     org_config = get_org(config, org)
     client_id, client_secret = resolve_credentials(org, config)
 

@@ -98,37 +98,19 @@ def status(
     ),
 ) -> None:
     """Show current authentication status."""
-    config = None
-    try:
-        config = load_config()
-    except ConfigError:
-        if org is None:
-            console.print(
-                "[red]No config file found. Run 'portctl org add' first.[/red]"
-            )
-            raise typer.Exit(code=1) from None
-        org_name: str = org
-        api_url = DEFAULT_API_URL
-    else:
-        try:
-            org_config = get_org(config, name=org)
-        except ConfigError as exc:
-            console.print(f"[red]{exc}[/red]")
-            raise typer.Exit(code=1) from None
-        org_name = org if org is not None else config.default_org
-        if org_name is None:
-            console.print("[red]No default org set. Specify --org.[/red]")
-            raise typer.Exit(code=1)
-        api_url = org_config.api_url
+    from portctl.cli.guard import require_config
 
-    if config is None:
-        console.print(
-            f"[bold]{org_name}[/bold]: [red]not configured[/red]"
-        )
-        console.print(
-            "  No config file found. Run 'portctl auth login' to store credentials."
-        )
+    config = require_config()
+    try:
+        org_config = get_org(config, name=org)
+    except ConfigError as exc:
+        console.print(f"[red]{exc}[/red]")
+        raise typer.Exit(code=1) from None
+    org_name: str = org if org is not None else config.default_org
+    if org_name is None:
+        console.print("[red]No default org set. Specify --org.[/red]")
         raise typer.Exit(code=1)
+    api_url = org_config.api_url
 
     # Resolve credentials
     try:
