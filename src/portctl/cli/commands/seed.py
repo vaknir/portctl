@@ -67,11 +67,22 @@ async def _seed(
     from portctl.services.seeder import (
         BLUEPRINTS,
         ENVIRONMENTS,
+        GITHUB_ORGANIZATIONS,
+        GITHUB_TEAMS,
+        GITHUB_USERS,
+        GROUPS,
+        JIRA_PROJECTS,
+        JIRA_USERS,
         MICROSERVICES,
         SCORECARDS,
+        SERVICES,
         TEAMS,
+        WORKLOADS,
         SeedResult,
         _generate_deployments,
+        _generate_github_pull_requests,
+        _generate_github_repositories,
+        _generate_jira_issues,
         seed_demo_data,
     )
 
@@ -80,6 +91,9 @@ async def _seed(
     client_id, client_secret = resolve_credentials(org_name, config)  # type: ignore[arg-type]
 
     deployments = _generate_deployments()
+    github_repos = _generate_github_repositories()
+    github_prs = _generate_github_pull_requests()
+    jira_issues = _generate_jira_issues()
 
     # Welcome panel
     console.print()
@@ -99,10 +113,21 @@ async def _seed(
     table.add_column("Count", justify="right")
     table.add_row("Blueprints", str(len(BLUEPRINTS)))
     table.add_row("Scorecards", str(len(SCORECARDS)))
+    table.add_row("Groups", str(len(GROUPS)))
     table.add_row("Teams", str(len(TEAMS)))
     table.add_row("Environments", str(len(ENVIRONMENTS)))
+    table.add_row("GitHub Organizations", str(len(GITHUB_ORGANIZATIONS)))
+    table.add_row("GitHub Users", str(len(GITHUB_USERS)))
+    table.add_row("GitHub Teams", str(len(GITHUB_TEAMS)))
+    table.add_row("GitHub Repositories", str(len(github_repos)))
+    table.add_row("GitHub Pull Requests", str(len(github_prs)))
+    table.add_row("Jira Projects", str(len(JIRA_PROJECTS)))
+    table.add_row("Jira Users", str(len(JIRA_USERS)))
+    table.add_row("Jira Issues", str(len(jira_issues)))
     table.add_row("Microservices", str(len(MICROSERVICES)))
+    table.add_row("Services", str(len(SERVICES)))
     table.add_row("Deployments", str(len(deployments)))
+    table.add_row("Workloads", str(len(WORKLOADS)))
     console.print("  This will create:")
     console.print(table)
     console.print()
@@ -164,10 +189,21 @@ async def _cleanup(
     from portctl.services.seeder import (
         BLUEPRINTS,
         ENVIRONMENTS,
+        GITHUB_ORGANIZATIONS,
+        GITHUB_TEAMS,
+        GITHUB_USERS,
+        GROUPS,
+        JIRA_PROJECTS,
+        JIRA_USERS,
         MICROSERVICES,
         SCORECARDS,
+        SERVICES,
         TEAMS,
+        WORKLOADS,
         _generate_deployments,
+        _generate_github_pull_requests,
+        _generate_github_repositories,
+        _generate_jira_issues,
         cleanup_demo_data,
     )
 
@@ -175,8 +211,13 @@ async def _cleanup(
     org_name = org or config.default_org  # type: ignore[union-attr]
     client_id, client_secret = resolve_credentials(org_name, config)  # type: ignore[arg-type]
 
-    deployments = _generate_deployments()
-    total_entities = len(TEAMS) + len(ENVIRONMENTS) + len(MICROSERVICES) + len(deployments)
+    total_entities = (
+        len(GROUPS) + len(TEAMS) + len(ENVIRONMENTS) + len(GITHUB_ORGANIZATIONS)
+        + len(GITHUB_USERS) + len(JIRA_PROJECTS) + len(JIRA_USERS)
+        + len(GITHUB_TEAMS) + len(_generate_github_repositories())
+        + len(MICROSERVICES) + len(SERVICES) + len(_generate_github_pull_requests())
+        + len(_generate_jira_issues()) + len(_generate_deployments()) + len(WORKLOADS)
+    )
 
     # Cleanup panel
     console.print()

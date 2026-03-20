@@ -406,6 +406,460 @@ MICROSERVICES: list[dict[str, Any]] = [
 ]
 
 
+# ── GitHub integration entities ──────────────────────────────────────
+
+GITHUB_ORGANIZATIONS: list[dict[str, Any]] = [
+    {
+        "identifier": "acme-corp",
+        "title": "Acme Corp",
+        "properties": {
+            "login": "acme-corp",
+            "id": 12345678,
+            "nodeId": "MDEyOk9yZ2FuaXphdGlvbjEyMzQ1Njc4",
+            "url": "https://github.com/acme-corp",
+            "reposUrl": "https://api.github.com/orgs/acme-corp/repos",
+            "eventsUrl": "https://api.github.com/orgs/acme-corp/events",
+            "hooksUrl": "https://api.github.com/orgs/acme-corp/hooks",
+            "issuesUrl": "https://api.github.com/orgs/acme-corp/issues",
+            "membersUrl": "https://api.github.com/orgs/acme-corp/members{/member}",
+            "publicMembersUrl": "https://api.github.com/orgs/acme-corp/public_members{/member}",
+            "avatarUrl": "https://avatars.githubusercontent.com/u/12345678",
+            "description": "Building the future of developer portals",
+        },
+        "relations": {},
+    },
+]
+
+GITHUB_USERS: list[dict[str, Any]] = [
+    {
+        "identifier": "sarah-chen",
+        "title": "Sarah Chen",
+        "properties": {"email": "sarah.chen@acme-corp.dev"},
+        "relations": {},
+    },
+    {
+        "identifier": "alex-murphy",
+        "title": "Alex Murphy",
+        "properties": {"email": "alex.murphy@acme-corp.dev"},
+        "relations": {},
+    },
+    {
+        "identifier": "jordan-lee",
+        "title": "Jordan Lee",
+        "properties": {"email": "jordan.lee@acme-corp.dev"},
+        "relations": {},
+    },
+    {
+        "identifier": "priya-patel",
+        "title": "Priya Patel",
+        "properties": {"email": "priya.patel@acme-corp.dev"},
+        "relations": {},
+    },
+    {
+        "identifier": "marcus-johnson",
+        "title": "Marcus Johnson",
+        "properties": {"email": "marcus.johnson@acme-corp.dev"},
+        "relations": {},
+    },
+]
+
+GITHUB_TEAMS: list[dict[str, Any]] = [
+    {
+        "identifier": "core-platform",
+        "title": "Core Platform",
+        "properties": {
+            "slug": "core-platform",
+            "description": "Core infrastructure and platform services",
+            "link": "https://github.com/orgs/acme-corp/teams/core-platform",
+            "permission": "admin",
+            "notification_setting": "notifications_enabled",
+        },
+        "relations": {
+            "members": ["sarah-chen", "alex-murphy"],
+        },
+    },
+    {
+        "identifier": "backend-eng",
+        "title": "Backend Engineering",
+        "properties": {
+            "slug": "backend-eng",
+            "description": "Backend services and API development",
+            "link": "https://github.com/orgs/acme-corp/teams/backend-eng",
+            "permission": "push",
+            "notification_setting": "notifications_enabled",
+        },
+        "relations": {
+            "members": ["jordan-lee", "priya-patel", "marcus-johnson"],
+        },
+    },
+    {
+        "identifier": "frontend-eng",
+        "title": "Frontend Engineering",
+        "properties": {
+            "slug": "frontend-eng",
+            "description": "Frontend applications and UI components",
+            "link": "https://github.com/orgs/acme-corp/teams/frontend-eng",
+            "permission": "push",
+            "notification_setting": "notifications_enabled",
+        },
+        "relations": {
+            "members": ["alex-murphy", "jordan-lee"],
+        },
+    },
+]
+
+_REPO_DEFINITIONS: list[tuple[str, str, str, str, str, list[str]]] = [
+    # (identifier, title, description, language, defaultBranch, teams)
+    ("api-gateway-repo", "API Gateway", "Central API gateway with routing and rate limiting",
+     "Go", "main", ["core-platform"]),
+    ("auth-service-repo", "Auth Service", "Authentication and authorization microservice",
+     "Python", "main", ["backend-eng"]),
+    ("payment-service-repo", "Payment Service", "Payment processing and Stripe integration",
+     "Java", "main", ["backend-eng"]),
+    ("notification-service-repo", "Notification Service", "Multi-channel notification delivery",
+     "Python", "main", ["backend-eng"]),
+    ("user-service-repo", "User Service", "User profile and preferences management",
+     "TypeScript", "main", ["backend-eng", "frontend-eng"]),
+    ("search-service-repo", "Search Service", "Full-text search powered by Elasticsearch",
+     "Go", "main", ["core-platform"]),
+    ("analytics-service-repo", "Analytics Service", "Internal analytics and reporting pipeline",
+     "Python", "develop", ["backend-eng"]),
+    ("billing-service-repo", "Billing Service", "Subscription management and invoicing",
+     "Java", "main", ["backend-eng"]),
+]
+
+_REPO_READMES: dict[str, str] = {
+    "api-gateway-repo": (
+        "# API Gateway\nHigh-performance gateway built with Go.\n"
+        "Handles routing, rate limiting, and authentication."
+    ),
+    "auth-service-repo": (
+        "# Auth Service\nOAuth2/OIDC provider for Acme platform.\n"
+        "Supports SSO, MFA, and API key management."
+    ),
+    "payment-service-repo": (
+        "# Payment Service\nStripe-based payment processing.\n"
+        "PCI-DSS compliant with automatic retry logic."
+    ),
+    "notification-service-repo": (
+        "# Notification Service\nSends email, SMS, and push notifications.\n"
+        "Supports templating and delivery scheduling."
+    ),
+    "user-service-repo": (
+        "# User Service\nManages user profiles and preferences.\n"
+        "GraphQL and REST APIs available."
+    ),
+    "search-service-repo": (
+        "# Search Service\nElasticsearch-backed search engine.\n"
+        "Supports fuzzy matching and faceted search."
+    ),
+    "analytics-service-repo": (
+        "# Analytics Service\nEvent ingestion and reporting pipeline.\n"
+        "ClickHouse backend with real-time dashboards."
+    ),
+    "billing-service-repo": (
+        "# Billing Service\nSubscription lifecycle and invoice generation.\n"
+        "Integrates with Stripe and NetSuite."
+    ),
+}
+
+
+def _generate_github_repositories() -> list[dict[str, Any]]:
+    """Generate GitHub repository entities with realistic metadata.
+
+    Returns:
+        List of repository entity dicts.
+    """
+    now = datetime.now(tz=UTC)
+    repos: list[dict[str, Any]] = []
+    for idx, (ident, title, desc, lang, branch, teams) in enumerate(_REPO_DEFINITIONS):
+        repos.append(
+            {
+                "identifier": ident,
+                "title": title,
+                "properties": {
+                    "readme": _REPO_READMES[ident],
+                    "url": f"https://github.com/acme-corp/{ident.replace('-repo', '')}",
+                    "defaultBranch": branch,
+                    "description": desc,
+                    "visibility": "private",
+                    "language": lang,
+                    "last_push": (now - timedelta(hours=idx * 3 + 1)).isoformat(),
+                    "require_code_owner_review": True,
+                    "require_approval_count": 2 if lang in ("Java", "Go") else 1,
+                },
+                "relations": {
+                    "githubTeams": teams,
+                    "organization": "acme-corp",
+                },
+            }
+        )
+    return repos
+
+
+def _generate_github_pull_requests() -> list[dict[str, Any]]:
+    """Generate recent GitHub pull request entities.
+
+    Returns:
+        List of PR entity dicts with a mix of statuses.
+    """
+    now = datetime.now(tz=UTC)
+    raw: list[tuple[str, str, str, str, str, str, int, int, str]] = [
+        # (id, title, status, repo, creator, branch, hours_ago, pr_num, lead_time)
+        ("pr-api-gw-142", "feat: add circuit breaker to upstream calls",
+         "merged", "api-gateway-repo", "sarah-chen", "feat/circuit-breaker", 4, 142, "6.2"),
+        ("pr-auth-89", "fix: refresh token rotation race condition",
+         "merged", "auth-service-repo", "jordan-lee", "fix/token-rotation", 8, 89, "3.5"),
+        ("pr-payment-67", "feat: add Apple Pay support",
+         "open", "payment-service-repo", "priya-patel", "feat/apple-pay", 2, 67, ""),
+        ("pr-user-201", "refactor: migrate to Prisma ORM",
+         "open", "user-service-repo", "marcus-johnson", "refactor/prisma-migration", 12, 201, ""),
+        ("pr-search-34", "fix: memory leak in query cache",
+         "merged", "search-service-repo", "alex-murphy", "fix/query-cache-leak", 24, 34, "1.8"),
+        ("pr-billing-55", "chore: upgrade Stripe SDK to v15",
+         "closed", "billing-service-repo", "priya-patel", "chore/stripe-v15", 48, 55, ""),
+    ]
+
+    prs: list[dict[str, Any]] = []
+    for ident, title, status, repo, creator, branch, hours_ago, pr_num, lead in raw:
+        created_at = (now - timedelta(hours=hours_ago)).isoformat()
+        props: dict[str, Any] = {
+            "status": status,
+            "createdAt": created_at,
+            "updatedAt": (now - timedelta(hours=max(0, hours_ago - 1))).isoformat(),
+            "link": f"https://github.com/acme-corp/{repo.replace('-repo', '')}/pull/{pr_num}",
+            "prNumber": pr_num,
+            "branch": branch,
+        }
+        if status == "merged":
+            props["mergedAt"] = (now - timedelta(hours=max(0, hours_ago - 1))).isoformat()
+            props["leadTimeHours"] = float(lead)
+        if status in ("merged", "closed"):
+            props["closedAt"] = (now - timedelta(hours=max(0, hours_ago - 1))).isoformat()
+
+        prs.append(
+            {
+                "identifier": ident,
+                "title": title,
+                "properties": props,
+                "relations": {
+                    "repository": repo,
+                    "git_hub_creator": creator,
+                },
+            }
+        )
+    return prs
+
+
+# ── Jira integration entities ───────────────────────────────────────
+
+JIRA_PROJECTS: list[dict[str, Any]] = [
+    {
+        "identifier": "PLAT",
+        "title": "Platform",
+        "properties": {
+            "url": "https://acme-corp.atlassian.net/browse/PLAT",
+        },
+        "relations": {},
+    },
+    {
+        "identifier": "BACK",
+        "title": "Backend",
+        "properties": {
+            "url": "https://acme-corp.atlassian.net/browse/BACK",
+        },
+        "relations": {},
+    },
+]
+
+JIRA_USERS: list[dict[str, Any]] = [
+    {
+        "identifier": "jira-sarah-chen",
+        "title": "Sarah Chen",
+        "properties": {
+            "emailAddress": "sarah.chen@acme-corp.dev",
+            "displayName": "Sarah Chen",
+            "active": True,
+            "accountType": "atlassian",
+        },
+        "relations": {},
+    },
+    {
+        "identifier": "jira-jordan-lee",
+        "title": "Jordan Lee",
+        "properties": {
+            "emailAddress": "jordan.lee@acme-corp.dev",
+            "displayName": "Jordan Lee",
+            "active": True,
+            "accountType": "atlassian",
+        },
+        "relations": {},
+    },
+    {
+        "identifier": "jira-priya-patel",
+        "title": "Priya Patel",
+        "properties": {
+            "emailAddress": "priya.patel@acme-corp.dev",
+            "displayName": "Priya Patel",
+            "active": True,
+            "accountType": "atlassian",
+        },
+        "relations": {},
+    },
+    {
+        "identifier": "jira-marcus-johnson",
+        "title": "Marcus Johnson",
+        "properties": {
+            "emailAddress": "marcus.johnson@acme-corp.dev",
+            "displayName": "Marcus Johnson",
+            "active": True,
+            "accountType": "atlassian",
+        },
+        "relations": {},
+    },
+]
+
+
+def _generate_jira_issues() -> list[dict[str, Any]]:
+    """Generate Jira issue entities with realistic metadata.
+
+    Returns:
+        List of Jira issue entity dicts.
+    """
+    now = datetime.now(tz=UTC)
+    raw: list[tuple[str, str, str, str, str, str, list[str], str, list[str], int, str]] = [
+        # (id, title, status, type, project, reporter, components, priority, labels, days_ago, url)
+        ("PLAT-101", "Circuit breaker timeout tuning", "Done", "Story", "PLAT",
+         "jira-sarah-chen", ["api-gateway"], "High", ["reliability"], 3,
+         "https://acme-corp.atlassian.net/browse/PLAT-101"),
+        ("PLAT-102", "Elasticsearch cluster upgrade to 8.x", "In Progress", "Story", "PLAT",
+         "jira-sarah-chen", ["search-service"], "Medium", ["infrastructure", "upgrade"], 5,
+         "https://acme-corp.atlassian.net/browse/PLAT-102"),
+        ("PLAT-103", "API gateway memory spike under load", "To Do", "Bug", "PLAT",
+         "jira-jordan-lee", ["api-gateway"], "Critical", ["production", "performance"], 1,
+         "https://acme-corp.atlassian.net/browse/PLAT-103"),
+        ("BACK-201", "Add Apple Pay payment method", "In Progress", "Story", "BACK",
+         "jira-priya-patel", ["payment-service"], "High", ["payments", "feature"], 4,
+         "https://acme-corp.atlassian.net/browse/BACK-201"),
+        ("BACK-202", "Refresh token rotation race condition", "Done", "Bug", "BACK",
+         "jira-jordan-lee", ["auth-service"], "Critical", ["security", "auth"], 2,
+         "https://acme-corp.atlassian.net/browse/BACK-202"),
+        ("BACK-203", "Migrate user-service to Prisma ORM", "In Progress", "Task", "BACK",
+         "jira-marcus-johnson", ["user-service"], "Medium", ["tech-debt", "migration"], 7,
+         "https://acme-corp.atlassian.net/browse/BACK-203"),
+        ("BACK-204", "Notification delivery retry logic", "In Review", "Story", "BACK",
+         "jira-priya-patel", ["notification-service"], "Medium", ["reliability"], 6,
+         "https://acme-corp.atlassian.net/browse/BACK-204"),
+        ("BACK-205", "Stripe SDK v15 upgrade", "Done", "Task", "BACK",
+         "jira-marcus-johnson", ["billing-service"], "Low", ["dependencies", "upgrade"], 10,
+         "https://acme-corp.atlassian.net/browse/BACK-205"),
+    ]
+
+    issues: list[dict[str, Any]] = []
+    for (ident, title, status, issue_type, project, reporter,
+         components, priority, labels, days_ago, url) in raw:
+        created = (now - timedelta(days=days_ago)).isoformat()
+        updated = (now - timedelta(days=max(0, days_ago - 1))).isoformat()
+        issues.append(
+            {
+                "identifier": ident,
+                "title": title,
+                "properties": {
+                    "url": url,
+                    "status": status,
+                    "issueType": issue_type,
+                    "components": components,
+                    "creator": reporter.replace("jira-", "").replace("-", " ").title(),
+                    "priority": priority,
+                    "labels": labels,
+                    "created": created,
+                    "updated": updated,
+                },
+                "relations": {
+                    "project": project,
+                    "jira_user_reporter": reporter,
+                },
+            }
+        )
+    return issues
+
+
+# ── Service / Workload / Group entities ─────────────────────────────
+
+SERVICES: list[dict[str, Any]] = [
+    {
+        "identifier": f"{name}-svc",
+        "title": title,
+        "properties": {},
+        "relations": {"repository": f"{name}-repo"},
+    }
+    for name, title in [
+        ("api-gateway", "API Gateway"),
+        ("auth-service", "Auth Service"),
+        ("payment-service", "Payment Service"),
+        ("notification-service", "Notification Service"),
+        ("user-service", "User Service"),
+        ("search-service", "Search Service"),
+        ("analytics-service", "Analytics Service"),
+        ("billing-service", "Billing Service"),
+    ]
+]
+
+WORKLOADS: list[dict[str, Any]] = [
+    {
+        "identifier": "api-gateway-prod-wl",
+        "title": "API Gateway (Production)",
+        "properties": {"version": "2.4.1"},
+        "relations": {"service": "api-gateway-svc", "environment": "production"},
+    },
+    {
+        "identifier": "auth-service-prod-wl",
+        "title": "Auth Service (Production)",
+        "properties": {"version": "1.8.3"},
+        "relations": {"service": "auth-service-svc", "environment": "production"},
+    },
+    {
+        "identifier": "payment-service-prod-wl",
+        "title": "Payment Service (Production)",
+        "properties": {"version": "3.1.0"},
+        "relations": {"service": "payment-service-svc", "environment": "production"},
+    },
+    {
+        "identifier": "user-service-stg-wl",
+        "title": "User Service (Staging)",
+        "properties": {"version": "4.1.0-rc1"},
+        "relations": {"service": "user-service-svc", "environment": "staging"},
+    },
+    {
+        "identifier": "search-service-prod-wl",
+        "title": "Search Service (Production)",
+        "properties": {"version": "2.0.0"},
+        "relations": {"service": "search-service-svc", "environment": "production"},
+    },
+    {
+        "identifier": "analytics-service-dev-wl",
+        "title": "Analytics Service (Development)",
+        "properties": {"version": "0.9.0-alpha"},
+        "relations": {"service": "analytics-service-svc", "environment": "development"},
+    },
+]
+
+GROUPS: list[dict[str, Any]] = [
+    {
+        "identifier": "engineering",
+        "title": "Engineering",
+        "properties": {},
+        "relations": {},
+    },
+    {
+        "identifier": "product",
+        "title": "Product",
+        "properties": {},
+        "relations": {},
+    },
+]
+
+
 def _generate_deployments() -> list[dict[str, Any]]:
     """Generate realistic deployment entities with recent timestamps.
 
@@ -492,12 +946,23 @@ async def seed_demo_data(
         progress("scorecards", sc["identifier"])
         result.scorecards_created += 1
 
-    # 3. Entities -- dependency order: teams, environments, microservices, deployments
+    # 3. Entities -- dependency order: independent first, then dependents
     entity_groups: list[tuple[str, str, list[dict[str, Any]]]] = [
+        ("group", "groups", GROUPS),
         ("team", "teams", TEAMS),
         ("environment", "environments", ENVIRONMENTS),
+        ("githubOrganization", "github_organizations", GITHUB_ORGANIZATIONS),
+        ("githubUser", "github_users", GITHUB_USERS),
+        ("jiraProject", "jira_projects", JIRA_PROJECTS),
+        ("jiraUser", "jira_users", JIRA_USERS),
+        ("githubTeam", "github_teams", GITHUB_TEAMS),
+        ("githubRepository", "github_repositories", _generate_github_repositories()),
         ("microservice", "microservices", MICROSERVICES),
+        ("service", "services", SERVICES),
+        ("githubPullRequest", "github_pull_requests", _generate_github_pull_requests()),
+        ("jiraIssue", "jira_issues", _generate_jira_issues()),
         ("deployment", "deployments", _generate_deployments()),
+        ("workload", "workloads", WORKLOADS),
     ]
 
     for bp_id, step_name, entities in entity_groups:
@@ -526,7 +991,7 @@ def _entity_detail(entity: dict[str, Any]) -> str:
 
     if owned_by and deployed_to:
         envs = deployed_to if isinstance(deployed_to, list) else [deployed_to]
-        return f"-> {owned_by}, [{', '.join(envs)}]"
+        return f"-> {owned_by}, \\[{', '.join(envs)}]"
     return ""
 
 
@@ -549,12 +1014,23 @@ async def cleanup_demo_data(
     progress = on_progress or _noop_progress
     deleted = 0
 
-    # 1. Entities -- reverse order: deployments, microservices, environments, teams
+    # 1. Entities -- reverse dependency order
     entity_groups: list[tuple[str, str, list[dict[str, Any]]]] = [
+        ("workload", "workloads", WORKLOADS),
         ("deployment", "deployments", _generate_deployments()),
+        ("jiraIssue", "jira_issues", _generate_jira_issues()),
+        ("githubPullRequest", "github_pull_requests", _generate_github_pull_requests()),
+        ("service", "services", SERVICES),
         ("microservice", "microservices", MICROSERVICES),
+        ("githubRepository", "github_repositories", _generate_github_repositories()),
+        ("githubTeam", "github_teams", GITHUB_TEAMS),
+        ("jiraUser", "jira_users", JIRA_USERS),
+        ("jiraProject", "jira_projects", JIRA_PROJECTS),
+        ("githubUser", "github_users", GITHUB_USERS),
+        ("githubOrganization", "github_organizations", GITHUB_ORGANIZATIONS),
         ("environment", "environments", ENVIRONMENTS),
         ("team", "teams", TEAMS),
+        ("group", "groups", GROUPS),
     ]
 
     for bp_id, step_name, entities in entity_groups:
@@ -597,7 +1073,8 @@ async def _safe_delete_entity(
         await client.delete_entity(blueprint_id, identifier)
         return True
     except PortAPIError as exc:
-        if exc.status_code == 404:
+        if exc.status_code in (404, 422):
+            logger.debug("Skipping entity %s/%s: %s", blueprint_id, identifier, exc.detail)
             return False
         raise
 
@@ -619,7 +1096,8 @@ async def _safe_delete_scorecard(
         await client.delete_scorecard(blueprint_id, identifier)
         return True
     except PortAPIError as exc:
-        if exc.status_code == 404:
+        if exc.status_code in (404, 422):
+            logger.debug("Skipping scorecard %s/%s: %s", blueprint_id, identifier, exc.detail)
             return False
         raise
 
@@ -638,6 +1116,7 @@ async def _safe_delete_blueprint(client: PortClient, identifier: str) -> bool:
         await client.delete_blueprint(identifier)
         return True
     except PortAPIError as exc:
-        if exc.status_code == 404:
+        if exc.status_code in (404, 422):
+            logger.debug("Skipping blueprint %s: %s", identifier, exc.detail)
             return False
         raise
