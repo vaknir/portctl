@@ -5,9 +5,14 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 import pytest
+from dotenv import find_dotenv, load_dotenv
 
 if TYPE_CHECKING:
     from pathlib import Path
+
+# Load .env if present so PORT_CLIENT_ID / PORT_CLIENT_SECRET are available.
+# Does nothing when the file is absent -- existing unit tests are unaffected.
+load_dotenv(find_dotenv(usecwd=True))
 
 
 @pytest.fixture()

@@ -8,6 +8,8 @@ from typing import TYPE_CHECKING, Any
 
 import yaml
 
+from portctl.services.ignore import load_ignore_filter
+
 if TYPE_CHECKING:
     from pathlib import Path
 
@@ -294,33 +296,44 @@ async def apply_org(
     if not plan.has_changes:
         return ApplyResult(results=results)
 
+    # Filter out ignored resources from the plan
+    ignore = load_ignore_filter(config_dir)
+    # ResourceChange uses singular resource_type ("blueprint", "scorecard") but
+    # ignore rules use plural directory names ("blueprints", "scorecards").
+    filtered_changes = [
+        c for c in plan.changes if not ignore.is_ignored(f"{c.resource_type}s", c.identifier)
+    ]
+
+    if not filtered_changes:
+        return ApplyResult(results=results)
+
     # Load local YAML data for creates/updates
     local_blueprints = _load_local_blueprints(config_dir)
     local_scorecards = _load_local_scorecards(config_dir)
 
     # Separate changes by type and action
     bp_creates = [
-        c for c in plan.changes
+        c for c in filtered_changes
         if c.resource_type == "blueprint" and c.action == "create"
     ]
     bp_updates = [
-        c for c in plan.changes
+        c for c in filtered_changes
         if c.resource_type == "blueprint" and c.action == "update"
     ]
     sc_creates = [
-        c for c in plan.changes
+        c for c in filtered_changes
         if c.resource_type == "scorecard" and c.action == "create"
     ]
     sc_updates = [
-        c for c in plan.changes
+        c for c in filtered_changes
         if c.resource_type == "scorecard" and c.action == "update"
     ]
     sc_deletes = [
-        c for c in plan.changes
+        c for c in filtered_changes
         if c.resource_type == "scorecard" and c.action == "delete"
     ]
     bp_deletes = [
-        c for c in plan.changes
+        c for c in filtered_changes
         if c.resource_type == "blueprint" and c.action == "delete"
     ]
 

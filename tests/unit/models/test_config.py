@@ -69,21 +69,15 @@ class TestOrgConfig:
                 client_secret="secret",
             )  # type: ignore[call-arg]
 
-    def test_missing_client_id_rejected(self) -> None:
-        """Client ID is required."""
-        with pytest.raises(ValidationError):
-            OrgConfig(
-                name="Org",
-                client_secret="secret",
-            )  # type: ignore[call-arg]
+    def test_missing_client_id_defaults_empty(self) -> None:
+        """Client ID defaults to empty string (credentials stored in keyring)."""
+        org = OrgConfig(name="Org", client_secret="secret")
+        assert org.client_id == ""
 
-    def test_missing_client_secret_rejected(self) -> None:
-        """Client secret is required."""
-        with pytest.raises(ValidationError):
-            OrgConfig(
-                name="Org",
-                client_id="id",
-            )  # type: ignore[call-arg]
+    def test_missing_client_secret_defaults_empty(self) -> None:
+        """Client secret defaults to empty string (credentials stored in keyring)."""
+        org = OrgConfig(name="Org", client_id="id")
+        assert org.client_secret == ""
 
     def test_custom_api_url(self) -> None:
         """Accepts a custom API URL."""

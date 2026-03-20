@@ -146,15 +146,17 @@ async def verify_token(
                 detail = auth_response.text
             raise AuthError(f"Authentication failed: {detail}")
 
-        token = auth_response.json()["accessToken"]
+        token_data = auth_response.json()
+        token = token_data["accessToken"]
 
-        # Step 2: Verify by calling /me
+        # Step 2: Try /me, but don't fail for service accounts (returns 404)
         me_response = await client.get(
             ME,
             headers={"authorization": f"Bearer {token}"},
         )
 
-        if me_response.status_code != 200:
-            raise AuthError("Failed to verify token: could not fetch user info")
+        if me_response.status_code == 200:
+            return me_response.json().get("user", {})  # type: ignore[no-any-return]
 
-        return me_response.json().get("user", {})  # type: ignore[no-any-return]
+        # Service account tokens can't call /me — that's OK, token is valid
+        return {"token_valid": True, "expires_in": token_data.get("expiresIn")}

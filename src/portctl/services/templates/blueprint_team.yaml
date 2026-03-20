@@ -1,0 +1,13 @@
+identifier: team
+title: Team
+icon: Team
+description: Engineering team
+properties:
+  slack_channel:
+    type: string
+    title: Slack Channel
+  oncall_schedule:
+    type: string
+    title: On-Call Schedule URL
+    format: url
+relations: {}

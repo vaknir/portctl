@@ -9,6 +9,7 @@ from typing import TYPE_CHECKING, Any, Literal
 import yaml
 from deepdiff import DeepDiff
 
+from portctl.services.ignore import load_ignore_filter
 from portctl.validation.pipeline import validate
 
 if TYPE_CHECKING:
@@ -291,6 +292,21 @@ async def plan_org(
     remote_scorecards = await _fetch_remote_scorecards(
         client, list(remote_blueprints.keys())
     )
+
+    # Filter ignored resources from both local and remote sets
+    ignore = load_ignore_filter(config_dir)
+    local_blueprints = {
+        k: v for k, v in local_blueprints.items() if not ignore.is_ignored("blueprints", k)
+    }
+    remote_blueprints = {
+        k: v for k, v in remote_blueprints.items() if not ignore.is_ignored("blueprints", k)
+    }
+    local_scorecards = {
+        k: v for k, v in local_scorecards.items() if not ignore.is_ignored("scorecards", k)
+    }
+    remote_scorecards = {
+        k: v for k, v in remote_scorecards.items() if not ignore.is_ignored("scorecards", k)
+    }
 
     # Step 4: Diff blueprints
     if resource_filter is None or resource_filter == "blueprints":

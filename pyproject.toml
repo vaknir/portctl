@@ -24,6 +24,7 @@ dev = [
     "mypy>=1.10",
     "types-PyYAML>=6.0",
     "vcrpy>=6.0",
+    "python-dotenv>=1.0",
 ]
 
 [project.scripts]
@@ -39,6 +40,7 @@ packages = ["src/portctl"]
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 asyncio_mode = "auto"
+markers = ["integration: tests requiring real Port.io API credentials"]
 
 [tool.ruff]
 line-length = 100
@@ -50,3 +52,5 @@ select = ["E", "F", "I", "N", "W", "UP", "B", "SIM", "TCH"]
 [tool.mypy]
 strict = true
 python_version = "3.11"
+
+

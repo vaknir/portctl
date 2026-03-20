@@ -13,8 +13,8 @@ class OrgConfig(BaseModel):
     """Configuration for a single Port organization."""
 
     name: str = Field(description="Organization display name")
-    client_id: str = Field(description="Port API client ID")
-    client_secret: str = Field(description="Port API client secret")
+    client_id: str = Field(default="", description="Port API client ID")
+    client_secret: str = Field(default="", description="Port API client secret")
     role: Literal["production", "mirror", "development"] = Field(
         default="development", description="Organization role"
     )

@@ -1,0 +1,20 @@
+# Service Blueprint - represents a microservice in your catalog
+# Docs: https://docs.getport.io/build-your-software-catalog/customize-integrations/configure-data-model/
+identifier: service
+title: Service
+icon: Microservice
+description: A microservice in the software catalog
+properties:
+  language:
+    type: string
+    title: Language
+    enum: [Python, TypeScript, Go, Java, Rust]
+  repository:
+    type: string
+    title: Repository
+    format: url
+  tier:
+    type: string
+    title: Service Tier
+    enum: ["Tier 1 - Critical", "Tier 2 - Important", "Tier 3 - Standard", "Tier 4 - Internal"]
+relations: {}

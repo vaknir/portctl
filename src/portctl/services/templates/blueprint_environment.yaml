@@ -1,0 +1,17 @@
+identifier: environment
+title: Environment
+icon: Environment
+description: Deployment environment
+properties:
+  type:
+    type: string
+    title: Type
+    enum: [production, staging, development, testing]
+  cloud_provider:
+    type: string
+    title: Cloud Provider
+    enum: [AWS, GCP, Azure, Other]
+  region:
+    type: string
+    title: Region
+relations: {}

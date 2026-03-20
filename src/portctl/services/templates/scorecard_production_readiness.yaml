@@ -1,0 +1,20 @@
+identifier: production_readiness
+title: Production Readiness
+blueprint: service
+rules:
+  - identifier: has_documentation
+    title: Has Documentation
+    level: Bronze
+    query:
+      combinator: and
+      conditions:
+        - property: documentation
+          operator: isNotEmpty
+  - identifier: has_monitoring
+    title: Has Monitoring
+    level: Silver
+    query:
+      combinator: and
+      conditions:
+        - property: monitoring_url
+          operator: isNotEmpty

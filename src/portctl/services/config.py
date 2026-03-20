@@ -9,7 +9,7 @@ from typing import TYPE_CHECKING, Any
 import yaml
 from pydantic import ValidationError
 
-from portctl.constants import CONFIG_FILE
+from portctl.constants import CONFIG_FILE, DEFAULT_API_URL
 from portctl.exceptions import ConfigError
 from portctl.models.config import OrgConfig, PortctlConfig
 
@@ -106,6 +106,66 @@ def load_config(path: Path | None = None) -> PortctlConfig:
         raise ConfigError(
             f"Invalid configuration in {config_path}: {exc}"
         ) from exc
+
+
+def save_config(config: PortctlConfig, path: Path | None = None) -> None:
+    """Save the portctl configuration to disk.
+
+    Args:
+        config: The config to persist.
+        path: Explicit path. Defaults to ~/.portctl/config.yaml.
+    """
+    config_path = path if path is not None else CONFIG_FILE
+
+    config_path.parent.mkdir(parents=True, exist_ok=True)
+
+    data = config.model_dump(mode="json")
+    config_path.write_text(
+        yaml.dump(data, default_flow_style=False, sort_keys=False),
+        encoding="utf-8",
+    )
+
+
+def ensure_org(
+    org_name: str,
+    *,
+    client_id: str = "",
+    client_secret: str = "",
+    api_url: str = DEFAULT_API_URL,
+    set_default: bool = False,
+    path: Path | None = None,
+) -> PortctlConfig:
+    """Add an org to the config file, creating the file if needed.
+
+    Args:
+        org_name: Organization alias.
+        client_id: Port API client ID (can be empty if stored in keyring).
+        client_secret: Port API client secret (can be empty if stored in keyring).
+        api_url: Port API base URL.
+        set_default: Whether to set this org as the default.
+        path: Explicit config path. Defaults to ~/.portctl/config.yaml.
+
+    Returns:
+        The updated config.
+    """
+    try:
+        config = load_config(path)
+    except ConfigError:
+        config = PortctlConfig(orgs={})
+
+    if org_name not in config.orgs:
+        config.orgs[org_name] = OrgConfig(
+            name=org_name,
+            client_id=client_id,
+            client_secret=client_secret,
+            api_url=api_url,
+        )
+
+    if set_default or config.default_org is None:
+        config.default_org = org_name
+
+    save_config(config, path)
+    return config
 
 
 def list_orgs(config: PortctlConfig) -> list[dict[str, str]]:

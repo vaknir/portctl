@@ -1,0 +1,33 @@
+name: portctl
+on:
+  pull_request:
+    paths: ['blueprints/**', 'scorecards/**', 'actions/**', 'pages/**']
+  push:
+    branches: [main]
+    paths: ['blueprints/**', 'scorecards/**', 'actions/**', 'pages/**']
+
+jobs:
+  validate-and-plan:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v4
+      - run: uv tool install portctl
+      - run: portctl validate
+      - run: portctl plan {org_name}
+        env:
+          PORT_CLIENT_ID: ${{ secrets.PORT_CLIENT_ID }}
+          PORT_CLIENT_SECRET: ${{ secrets.PORT_CLIENT_SECRET }}
+
+  apply:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v4
+      - run: uv tool install portctl
+      - run: portctl apply {org_name} --yes
+        env:
+          PORT_CLIENT_ID: ${{ secrets.PORT_CLIENT_ID }}
+          PORT_CLIENT_SECRET: ${{ secrets.PORT_CLIENT_SECRET }}

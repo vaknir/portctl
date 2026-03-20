@@ -15,6 +15,7 @@ from portctl.models.blueprint import (
     BlueprintRelation,
 )
 from portctl.models.scorecard import Scorecard
+from portctl.services.ignore import IgnoreFilter, load_ignore_filter
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -108,25 +109,34 @@ def _write_yaml(data: dict[str, Any], path: Path) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     yml = YAML()
     yml.default_flow_style = False
-    yml.width = 120  # type: ignore[assignment]
+    yml.width = 120
     with path.open("w", encoding="utf-8") as fh:
         yml.dump(data, fh)
 
 
-async def export_blueprints(client: PortClient, output_dir: Path) -> list[str]:
+async def export_blueprints(
+    client: PortClient,
+    output_dir: Path,
+    ignore: IgnoreFilter | None = None,
+) -> list[str]:
     """Export all non-internal blueprints to YAML files.
 
     Fetches blueprints from the Port API, filters out internal ones (identifiers
-    starting with ``_`` or ``$``), maps them to the Blueprint model, and writes
-    each as a YAML file under ``output_dir/blueprints/<identifier>.yaml``.
+    starting with ``_`` or ``$``) and any matched by the ignore filter, maps them
+    to the Blueprint model, and writes each as a YAML file under
+    ``output_dir/blueprints/<identifier>.yaml``.
 
     Args:
         client: Authenticated Port API client.
         output_dir: Root directory for exported files.
+        ignore: Optional ignore filter. Loaded from output_dir if not provided.
 
     Returns:
         List of exported blueprint identifiers.
     """
+    if ignore is None:
+        ignore = load_ignore_filter(output_dir)
+
     raw_blueprints = await client.get_blueprints()
     exported: list[str] = []
 
@@ -134,6 +144,10 @@ async def export_blueprints(client: PortClient, output_dir: Path) -> list[str]:
         identifier = raw.get("identifier", "")
         if _is_internal(identifier):
             logger.debug("Skipping internal blueprint: %s", identifier)
+            continue
+
+        if ignore.is_ignored("blueprints", identifier):
+            logger.debug("Skipping ignored blueprint: %s", identifier)
             continue
 
         blueprint = _map_blueprint(raw)
@@ -147,28 +161,39 @@ async def export_blueprints(client: PortClient, output_dir: Path) -> list[str]:
 
 
 async def export_scorecards(
-    client: PortClient, blueprints: list[str], output_dir: Path
+    client: PortClient,
+    blueprints: list[str],
+    output_dir: Path,
+    ignore: IgnoreFilter | None = None,
 ) -> list[str]:
     """Export scorecards for the given blueprints to YAML files.
 
     For each blueprint identifier, fetches its scorecards from the Port API,
-    maps them to the Scorecard model, and writes each as a YAML file under
+    filters out any matched by the ignore filter, maps them to the Scorecard
+    model, and writes each as a YAML file under
     ``output_dir/scorecards/<identifier>.yaml``.
 
     Args:
         client: Authenticated Port API client.
         blueprints: List of blueprint identifiers to fetch scorecards for.
         output_dir: Root directory for exported files.
+        ignore: Optional ignore filter. Loaded from output_dir if not provided.
 
     Returns:
         List of exported scorecard identifiers.
     """
+    if ignore is None:
+        ignore = load_ignore_filter(output_dir)
+
     exported: list[str] = []
 
     for blueprint_id in blueprints:
         raw_scorecards = await client.get_scorecards(blueprint_id)
         for raw in raw_scorecards:
             scorecard = _map_scorecard(raw)
+            if ignore.is_ignored("scorecards", scorecard.identifier):
+                logger.debug("Skipping ignored scorecard: %s", scorecard.identifier)
+                continue
             data = scorecard.model_dump(exclude_none=True)
             yaml_path = output_dir / "scorecards" / f"{scorecard.identifier}.yaml"
             _write_yaml(data, yaml_path)
@@ -194,12 +219,13 @@ async def export_all(
     Returns:
         Summary dict with counts, e.g. ``{"blueprints": 3, "scorecards": 5}``.
     """
+    ignore = load_ignore_filter(output_dir)
     blueprint_ids: list[str] = []
     blueprint_count = 0
     scorecard_count = 0
 
     if resource is None or resource == "blueprints":
-        blueprint_ids = await export_blueprints(client, output_dir)
+        blueprint_ids = await export_blueprints(client, output_dir, ignore=ignore)
         blueprint_count = len(blueprint_ids)
 
     if resource is None or resource == "scorecards":
@@ -211,7 +237,9 @@ async def export_all(
                 for bp in raw_blueprints
                 if not _is_internal(bp.get("identifier", ""))
             ]
-        scorecard_ids = await export_scorecards(client, blueprint_ids, output_dir)
+        scorecard_ids = await export_scorecards(
+            client, blueprint_ids, output_dir, ignore=ignore
+        )
         scorecard_count = len(scorecard_ids)
 
     return {"blueprints": blueprint_count, "scorecards": scorecard_count}

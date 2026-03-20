@@ -367,3 +367,64 @@ class TestApplyDeleteOrder:
 
         assert call_order[0].startswith("scorecard")
         assert call_order[1].startswith("blueprint")
+
+
+class TestApplyIgnoreFilter:
+    """test_apply_ignore_filter -- ignored resources are skipped."""
+
+    async def test_apply_skips_ignored_resources(self, tmp_path: Path) -> None:
+        """Resources matching .portctlignore patterns are not applied."""
+        # Write a .portctlignore that ignores _ocean_* blueprints
+        ignore_file = tmp_path / ".portctlignore"
+        ignore_file.write_text("blueprints/_ocean_*\n")
+
+        # Write local YAML for both blueprints
+        bp_data = _sample_blueprint_yaml("service")
+        _write_yaml(tmp_path / "blueprints" / "service.yaml", bp_data)
+        ocean_data = _sample_blueprint_yaml("_ocean_kafka")
+        _write_yaml(tmp_path / "blueprints" / "_ocean_kafka.yaml", ocean_data)
+
+        plan = PlanResult(
+            changes=[
+                ResourceChange(
+                    resource_type="blueprint",
+                    identifier="service",
+                    action="create",
+                ),
+                ResourceChange(
+                    resource_type="blueprint",
+                    identifier="_ocean_kafka",
+                    action="create",
+                ),
+            ],
+        )
+
+        client = _make_mock_client()
+        result = await apply_org(client, plan, config_dir=tmp_path)
+
+        # Only "service" should be applied, "_ocean_kafka" should be skipped
+        client.upsert_blueprint.assert_called_once_with(bp_data)
+        assert len(result.results) == 1
+        assert result.results[0].identifier == "service"
+
+    async def test_apply_no_ignore_file_applies_all(self, tmp_path: Path) -> None:
+        """Without .portctlignore, all resources are applied."""
+        bp_data = _sample_blueprint_yaml("_ocean_kafka")
+        _write_yaml(tmp_path / "blueprints" / "_ocean_kafka.yaml", bp_data)
+
+        plan = PlanResult(
+            changes=[
+                ResourceChange(
+                    resource_type="blueprint",
+                    identifier="_ocean_kafka",
+                    action="create",
+                ),
+            ],
+        )
+
+        client = _make_mock_client()
+        result = await apply_org(client, plan, config_dir=tmp_path)
+
+        client.upsert_blueprint.assert_called_once_with(bp_data)
+        assert len(result.results) == 1
+        assert result.results[0].success is True

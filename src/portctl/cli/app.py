@@ -10,9 +10,11 @@ from portctl.cli.commands.apply import app as apply_app
 from portctl.cli.commands.auth import app as auth_app
 from portctl.cli.commands.blueprint import app as blueprint_app
 from portctl.cli.commands.export import app as export_app
+from portctl.cli.commands.init import init_command
 from portctl.cli.commands.org import app as org_app
 from portctl.cli.commands.plan import app as plan_app
 from portctl.cli.commands.validate import app as validate_app
+from portctl.cli.commands.whoami import whoami  # noqa: I001
 from portctl.constants import VERSION
 
 app = typer.Typer(
@@ -43,6 +45,8 @@ def main_callback(
     """portctl - GitOps CLI for Port.io."""
 
 
+app.command(name="init")(init_command)
+app.command(name="whoami")(whoami)
 app.add_typer(auth_app, name="auth", help="Authenticate with Port.io.")
 app.add_typer(org_app, name="org", help="Manage organizations.")
 app.add_typer(export_app, name="export", help="Export portal configuration to YAML.")
