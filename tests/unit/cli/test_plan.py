@@ -1,4 +1,4 @@
-"""Tests for plan CLI command."""
+"""Tests for diff (plan) CLI command."""
 
 from __future__ import annotations
 
@@ -123,7 +123,7 @@ class TestPlanNoChangesExit0:
             mock_instance.__aenter__ = AsyncMock(return_value=mock_instance)
             mock_instance.__aexit__ = AsyncMock(return_value=False)
 
-            result = runner.invoke(app, ["plan", "run", "prod"])
+            result = runner.invoke(app, ["diff", "prod"])
 
         assert result.exit_code == 0
 
@@ -157,7 +157,7 @@ class TestPlanWithChangesExit2:
             mock_instance.__aenter__ = AsyncMock(return_value=mock_instance)
             mock_instance.__aexit__ = AsyncMock(return_value=False)
 
-            result = runner.invoke(app, ["plan", "run", "prod"])
+            result = runner.invoke(app, ["diff", "prod"])
 
         assert result.exit_code == 2
 
@@ -191,7 +191,7 @@ class TestPlanJsonOutput:
             mock_instance.__aenter__ = AsyncMock(return_value=mock_instance)
             mock_instance.__aexit__ = AsyncMock(return_value=False)
 
-            result = runner.invoke(app, ["plan", "run", "prod", "--json"])
+            result = runner.invoke(app, ["diff", "prod", "--json"])
 
         # Should still exit 2 because there are changes
         assert result.exit_code == 2

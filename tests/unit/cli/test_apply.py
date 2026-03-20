@@ -107,7 +107,7 @@ class TestApplyNoChanges:
             mock_instance.__aenter__ = AsyncMock(return_value=mock_instance)
             mock_instance.__aexit__ = AsyncMock(return_value=False)
 
-            result = runner.invoke(app, ["apply", "run", "prod", "--yes"])
+            result = runner.invoke(app, ["apply", "prod", "--yes"])
 
         assert result.exit_code == 0
         assert "Nothing to apply" in result.output
@@ -148,7 +148,7 @@ class TestApplyWithYesFlag:
             mock_instance.__aenter__ = AsyncMock(return_value=mock_instance)
             mock_instance.__aexit__ = AsyncMock(return_value=False)
 
-            result = runner.invoke(app, ["apply", "run", "prod", "--yes"])
+            result = runner.invoke(app, ["apply", "prod", "--yes"])
 
         mock_apply.assert_called_once()
         assert result.exit_code == 0
@@ -189,7 +189,7 @@ class TestApplySummary:
             mock_instance.__aenter__ = AsyncMock(return_value=mock_instance)
             mock_instance.__aexit__ = AsyncMock(return_value=False)
 
-            result = runner.invoke(app, ["apply", "run", "prod", "--yes"])
+            result = runner.invoke(app, ["apply", "prod", "--yes"])
 
         assert result.exit_code == 0
         assert "1 created" in result.output

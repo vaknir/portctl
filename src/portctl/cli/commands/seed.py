@@ -12,12 +12,10 @@ from rich.table import Table
 
 from portctl.exceptions import PortctlError
 
-app = typer.Typer(no_args_is_help=False)
 console = Console()
 
 
-@app.command(name="run")
-def seed_run(
+def seed_command(
     org: Optional[str] = typer.Option(  # noqa: UP007, UP045
         None,
         "--org",
@@ -39,25 +37,32 @@ def seed_run(
     from portctl.cli.guard import require_config
 
     config = require_config()
+    org_name = org or config.default_org
+    if org_name is None:
+        console.print(
+            "[red]No default org set. Specify --org or set default_org in config.[/red]"
+        )
+        raise typer.Exit(code=1)
+    console.print(f"[dim]Running seed on {org_name}...[/dim]")
     try:
         if cleanup:
-            asyncio.run(_cleanup(org, config, yes))
+            asyncio.run(_cleanup(org_name, config, yes))
         else:
-            asyncio.run(_seed(org, config, yes))
+            asyncio.run(_seed(org_name, config, yes))
     except PortctlError as exc:
         console.print(f"[red]Error: {exc}[/red]")
         raise typer.Exit(code=1) from None
 
 
 async def _seed(
-    org: str | None,
+    org: str,
     config: object,
     yes: bool,
 ) -> None:
     """Async implementation of the seed command.
 
     Args:
-        org: Organization alias or None for default.
+        org: Organization alias (already resolved).
         config: Validated portctl configuration.
         yes: If True, skip confirmation prompt.
     """
@@ -87,7 +92,7 @@ async def _seed(
     )
 
     org_config = get_org(config, org)  # type: ignore[arg-type]
-    org_name = org or config.default_org  # type: ignore[union-attr]
+    org_name = org
     client_id, client_secret = resolve_credentials(org_name, config)  # type: ignore[arg-type]
 
     deployments = _generate_deployments()
@@ -172,14 +177,14 @@ async def _seed(
 
 
 async def _cleanup(
-    org: str | None,
+    org: str,
     config: object,
     yes: bool,
 ) -> None:
     """Async implementation of the cleanup command.
 
     Args:
-        org: Organization alias or None for default.
+        org: Organization alias (already resolved).
         config: Validated portctl configuration.
         yes: If True, skip confirmation prompt.
     """
@@ -208,7 +213,7 @@ async def _cleanup(
     )
 
     org_config = get_org(config, org)  # type: ignore[arg-type]
-    org_name = org or config.default_org  # type: ignore[union-attr]
+    org_name = org
     client_id, client_secret = resolve_credentials(org_name, config)  # type: ignore[arg-type]
 
     total_entities = (

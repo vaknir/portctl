@@ -14,13 +14,14 @@ from portctl.exceptions import PortctlError
 if TYPE_CHECKING:
     from portctl.models.config import PortctlConfig
 
-app = typer.Typer(no_args_is_help=True)
 console = Console()
 
 
-@app.command(name="run")
-def plan_run(
-    org: str = typer.Argument(help="Organization to plan against."),
+def diff_command(
+    org: Optional[str] = typer.Argument(  # noqa: UP007, UP045
+        None,
+        help="Organization to plan against. Uses default org if not specified.",
+    ),
     resource: Optional[str] = typer.Option(  # noqa: UP007, UP045
         None,
         "--resource",
@@ -37,8 +38,16 @@ def plan_run(
     from portctl.cli.guard import require_config
 
     config = require_config()
+    org_name = org or config.default_org
+    if org_name is None:
+        console.print(
+            "[red]No default org set. Specify an org or set default_org in config.[/red]"
+        )
+        raise typer.Exit(code=1)
+    if not json_output:
+        console.print(f"[dim]Running diff on {org_name}...[/dim]")
     try:
-        asyncio.run(_plan_run(org, resource, json_output, config))
+        asyncio.run(_plan_run(org_name, resource, json_output, config))
     except PortctlError as exc:
         console.print(f"[red]Error: {exc}[/red]")
         raise typer.Exit(code=1) from None
