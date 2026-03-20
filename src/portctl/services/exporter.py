@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any
 
 from ruamel.yaml import YAML
@@ -23,6 +24,38 @@ if TYPE_CHECKING:
     from portctl.client.port_client import PortClient
 
 logger = logging.getLogger(__name__)
+
+
+@dataclass
+class ExportResult:
+    """Result of an export operation with counts and identifiers.
+
+    Attributes:
+        blueprint_ids: List of exported blueprint identifiers.
+        scorecard_ids: List of exported scorecard identifiers.
+    """
+
+    blueprint_ids: list[str] = field(default_factory=list)
+    scorecard_ids: list[str] = field(default_factory=list)
+
+    @property
+    def blueprint_count(self) -> int:
+        """Number of exported blueprints."""
+        return len(self.blueprint_ids)
+
+    @property
+    def scorecard_count(self) -> int:
+        """Number of exported scorecards."""
+        return len(self.scorecard_ids)
+
+    def to_summary(self) -> dict[str, int]:
+        """Return a summary dict for backward compatibility.
+
+        Returns:
+            Dict with blueprint and scorecard counts.
+        """
+        return {"blueprints": self.blueprint_count, "scorecards": self.scorecard_count}
+
 
 # Prefixes that indicate internal/system blueprints
 _INTERNAL_PREFIXES = ("_", "$")
@@ -207,7 +240,7 @@ async def export_all(
     client: PortClient,
     output_dir: Path,
     resource: str | None = None,
-) -> dict[str, int]:
+) -> ExportResult:
     """Orchestrate export of blueprints and scorecards.
 
     Args:
@@ -217,16 +250,16 @@ async def export_all(
             to export only that resource type. Exports all when ``None``.
 
     Returns:
-        Summary dict with counts, e.g. ``{"blueprints": 3, "scorecards": 5}``.
+        An ExportResult with exported resource identifiers and counts.
     """
     ignore = load_ignore_filter(output_dir)
     blueprint_ids: list[str] = []
-    blueprint_count = 0
-    scorecard_count = 0
+    exported_blueprint_ids: list[str] = []
+    exported_scorecard_ids: list[str] = []
 
     if resource is None or resource == "blueprints":
         blueprint_ids = await export_blueprints(client, output_dir, ignore=ignore)
-        blueprint_count = len(blueprint_ids)
+        exported_blueprint_ids = blueprint_ids
 
     if resource is None or resource == "scorecards":
         # If we haven't fetched blueprint ids yet, do so for scorecard lookup
@@ -237,9 +270,11 @@ async def export_all(
                 for bp in raw_blueprints
                 if not _is_internal(bp.get("identifier", ""))
             ]
-        scorecard_ids = await export_scorecards(
+        exported_scorecard_ids = await export_scorecards(
             client, blueprint_ids, output_dir, ignore=ignore
         )
-        scorecard_count = len(scorecard_ids)
 
-    return {"blueprints": blueprint_count, "scorecards": scorecard_count}
+    return ExportResult(
+        blueprint_ids=exported_blueprint_ids,
+        scorecard_ids=exported_scorecard_ids,
+    )

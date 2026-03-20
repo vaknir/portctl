@@ -217,10 +217,10 @@ class TestExportAll:
                 "environment": [],
             },
         )
-        summary = await export_all(client, tmp_path)
+        result = await export_all(client, tmp_path)
 
-        assert summary["blueprints"] == 2
-        assert summary["scorecards"] == 1
+        assert result.blueprint_count == 2
+        assert result.scorecard_count == 1
 
     async def test_export_all_resource_filter_blueprints(self, tmp_path: Path) -> None:
         """--resource=blueprints only exports blueprints, skips scorecards."""
@@ -228,10 +228,10 @@ class TestExportAll:
             blueprints=[_sample_blueprint_api("service")],
             scorecards={"service": [_sample_scorecard_api()]},
         )
-        summary = await export_all(client, tmp_path, resource="blueprints")
+        result = await export_all(client, tmp_path, resource="blueprints")
 
-        assert summary["blueprints"] == 1
-        assert summary["scorecards"] == 0
+        assert result.blueprint_count == 1
+        assert result.scorecard_count == 0
         client.get_scorecards.assert_not_called()
 
     async def test_export_all_resource_filter_scorecards(self, tmp_path: Path) -> None:
@@ -240,11 +240,11 @@ class TestExportAll:
             blueprints=[_sample_blueprint_api("service")],
             scorecards={"service": [_sample_scorecard_api()]},
         )
-        summary = await export_all(client, tmp_path, resource="scorecards")
+        result = await export_all(client, tmp_path, resource="scorecards")
 
         # Still fetches blueprints for the identifiers list, but doesn't write them
-        assert summary["blueprints"] == 0
-        assert summary["scorecards"] == 1
+        assert result.blueprint_count == 0
+        assert result.scorecard_count == 1
         assert not (tmp_path / "blueprints").exists()
 
 

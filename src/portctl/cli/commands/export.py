@@ -57,10 +57,19 @@ async def _export_run(
         output_dir: Root directory for exported YAML files.
         config: Validated portctl configuration.
     """
+    import os
+    from datetime import UTC, datetime
+
     from portctl.client.port_client import PortClient
     from portctl.services.auth import resolve_credentials
     from portctl.services.config import get_org
     from portctl.services.exporter import export_all
+    from portctl.services.state import (
+        EXPORT_STATE_FILENAME,
+        ExportStateEntry,
+        ResourceEntry,
+        record_export_state,
+    )
 
     org_config = get_org(config, org)
     client_id, client_secret = resolve_credentials(org, config)
@@ -71,10 +80,33 @@ async def _export_run(
             client_secret=client_secret,
             api_base=org_config.api_url,
         ) as client:
-            summary = await export_all(client, output_dir, resource=resource)
+            result = await export_all(client, output_dir, resource=resource)
 
-    bp_count = summary["blueprints"]
-    sc_count = summary["scorecards"]
+    # Build state baseline entry
+    changes: list[ResourceEntry] = []
+    for bp_id in result.blueprint_ids:
+        changes.append(
+            ResourceEntry(resource_type="blueprint", identifier=bp_id, action="imported")
+        )
+    for sc_id in result.scorecard_ids:
+        changes.append(
+            ResourceEntry(resource_type="scorecard", identifier=sc_id, action="imported")
+        )
+
+    applied_by = os.environ.get("USER", os.environ.get("CI_ACTOR", "unknown"))
+    entry = ExportStateEntry(
+        id="initial-export",
+        timestamp=datetime.now(tz=UTC).isoformat(),
+        applied_by=applied_by,
+        via="export",
+        note="Initial export -- baseline snapshot",
+        changes=changes,
+    )
+    state_path = output_dir / EXPORT_STATE_FILENAME
+    record_export_state(state_path, entry)
+
+    bp_count = result.blueprint_count
+    sc_count = result.scorecard_count
     console.print(
         f"[green]Exported {bp_count} blueprint(s), {sc_count} scorecard(s)[/green]"
     )
