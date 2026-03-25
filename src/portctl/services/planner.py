@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
+import copy
 import logging
+import re
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any, Literal
 
@@ -23,6 +25,28 @@ logger = logging.getLogger(__name__)
 # Prefixes that indicate internal/system blueprints
 _INTERNAL_PREFIXES = ("_", "$")
 
+# Fields to exclude from diffs (metadata injected by the API)
+_EXCLUDE_PATHS = {
+    "root['id']",
+    "root['createdAt']",
+    "root['createdBy']",
+    "root['updatedAt']",
+    "root['updatedBy']",
+}
+
+# Regex patterns for fields that should be excluded from diffs
+_EXCLUDE_REGEX = [
+    re.compile(r"root\['properties'\]\['\w+'\]\['required'\]"),  # required: false vs missing
+    re.compile(r"root\['properties'\]\['\w+'\]\['enumColors'\]"),  # API-injected color map
+    re.compile(r"root\['properties'\]\['\w+'\]\['items'\]"),  # API-injected array schema
+    re.compile(r"root\['calculation_properties'\]\['\w+'\]\['icon'\]"),  # API default icon
+    re.compile(r"root\['calculation_properties'\]\['\w+'\]\['description'\]"),  # API desc
+    re.compile(r"root\['relations'\]\['\w+'\]\['description'\]"),  # API-injected relation desc
+]
+
+# Keys whose empty-dict values should be stripped before diffing
+_EMPTY_DICT_KEYS = {"properties", "mirror_properties", "calculation_properties", "relations"}
+
 
 @dataclass
 class ResourceChange:
@@ -42,6 +66,8 @@ class PlanResult:
 
     changes: list[ResourceChange] = field(default_factory=list)
     validation_result: ValidationResult | None = None
+    total_local_blueprints: int = 0
+    total_local_scorecards: int = 0
 
     @property
     def has_changes(self) -> bool:
@@ -72,6 +98,57 @@ class PlanResult:
     def deletes(self) -> list[ResourceChange]:
         """Return all delete changes."""
         return [c for c in self.changes if c.action == "delete"]
+
+
+def _normalize_for_diff(data: dict[str, Any]) -> dict[str, Any]:
+    """Normalize resource data to remove noise before diffing.
+
+    Strips fields that commonly cause false-positive diffs:
+    - Empty dict values for mirror_properties, calculation_properties, relations
+    - ``required: false`` on properties (it's the default)
+    - Empty-string ``identifier`` on scorecard levels
+
+    Args:
+        data: Raw resource dict (local or remote).
+
+    Returns:
+        A cleaned copy of the data suitable for diffing.
+    """
+    result = copy.deepcopy(data)
+
+    # Remove keys whose value is an empty dict
+    for key in _EMPTY_DICT_KEYS:
+        if key in result and result[key] == {}:
+            del result[key]
+
+    # Remove `required: false` from each property (it's the default)
+    properties = result.get("properties")
+    if isinstance(properties, dict):
+        for prop_data in properties.values():
+            if isinstance(prop_data, dict) and prop_data.get("required") is False:
+                del prop_data["required"]
+
+    # Remove empty-string `identifier` from scorecard levels
+    levels = result.get("levels")
+    if isinstance(levels, list):
+        for level in levels:
+            if isinstance(level, dict) and level.get("identifier") == "":
+                del level["identifier"]
+
+    # Normalize scorecard rules: strip API-injected `description`, sort by identifier.
+    # The Port API auto-generates `description` on scorecard rules — it is not
+    # user-authored content, so we strip it from both sides before diffing.
+    rules = result.get("rules")
+    if isinstance(rules, list):
+        for rule in rules:
+            if isinstance(rule, dict):
+                rule.pop("description", None)
+        result["rules"] = sorted(
+            rules,
+            key=lambda r: r.get("identifier", "") if isinstance(r, dict) else "",
+        )
+
+    return result
 
 
 def _is_internal(identifier: str) -> bool:
@@ -191,6 +268,9 @@ def _diff_resources(
 ) -> dict[str, Any] | None:
     """Compute a structured diff between local and remote resource data.
 
+    Both sides are normalised before comparison to eliminate false positives
+    from empty dicts, default values, and API metadata fields.
+
     Args:
         local: Local YAML resource data.
         remote: Remote API resource data (already normalised to local format).
@@ -198,7 +278,16 @@ def _diff_resources(
     Returns:
         A dict of changes if any, or None if identical.
     """
-    diff = DeepDiff(remote, local, ignore_order=True)
+    norm_local = _normalize_for_diff(local)
+    norm_remote = _normalize_for_diff(remote)
+
+    diff = DeepDiff(
+        norm_remote,
+        norm_local,
+        ignore_order=True,
+        exclude_paths=_EXCLUDE_PATHS,
+        exclude_regex_paths=_EXCLUDE_REGEX,
+    )
     if not diff:
         return None
     return dict(diff)
@@ -384,4 +473,9 @@ async def plan_org(
                     )
                 )
 
-    return PlanResult(changes=changes, validation_result=validation_result)
+    return PlanResult(
+        changes=changes,
+        validation_result=validation_result,
+        total_local_blueprints=len(local_blueprints),
+        total_local_scorecards=len(local_scorecards),
+    )
