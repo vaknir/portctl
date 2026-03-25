@@ -1,0 +1,51 @@
+identifier: security
+title: Security
+blueprint: microservice
+levels:
+- identifier: ''
+  title: Basic
+  color: paleBlue
+- identifier: ''
+  title: Bronze
+  color: bronze
+- identifier: ''
+  title: Silver
+  color: silver
+- identifier: ''
+  title: Gold
+  color: gold
+rules:
+- identifier: not-internal-tier
+  title: Not Internal Tier
+  level: Silver
+  query:
+    combinator: and
+    conditions:
+    - property: tier
+      operator: '!='
+      value: internal
+- identifier: is-critical-tier
+  title: Is Critical Tier
+  level: Gold
+  query:
+    combinator: and
+    conditions:
+    - property: tier
+      operator: '='
+      value: critical
+- identifier: has-service-description
+  title: Has Service Description
+  level: Silver
+  query:
+    combinator: and
+    conditions:
+    - property: description
+      operator: isNotEmpty
+- identifier: has-on-call-contact
+  title: Has On-call Contact
+  level: Bronze
+  query:
+    combinator: and
+    conditions:
+    - property: on_call
+      operator: isNotEmpty

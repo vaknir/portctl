@@ -1,0 +1,68 @@
+identifier: githubOrganization
+title: Organization
+icon: Github
+description: This blueprint represents a GitHub organization for the GitHub Ocean integration
+properties:
+  login:
+    type: string
+    title: Organization Login
+    description: The GitHub organization login name
+    required: false
+  id:
+    type: number
+    title: Organization ID
+    description: GitHub organization ID
+    required: false
+  nodeId:
+    type: string
+    title: Node ID
+    description: GitHub GraphQL node ID
+    required: false
+  url:
+    type: string
+    title: API URL
+    description: GitHub API URL for the organization
+    required: false
+  reposUrl:
+    type: string
+    title: Repositories URL
+    description: URL to organization's repositories
+    required: false
+  eventsUrl:
+    type: string
+    title: Events URL
+    description: URL to organization's events
+    required: false
+  hooksUrl:
+    type: string
+    title: Webhooks URL
+    description: URL to organization's webhooks
+    required: false
+  issuesUrl:
+    type: string
+    title: Issues URL
+    description: URL to organization's issues
+    required: false
+  membersUrl:
+    type: string
+    title: Members URL
+    description: URL to organization's members
+    required: false
+  publicMembersUrl:
+    type: string
+    title: Public Members URL
+    description: URL to organization's public members
+    required: false
+  avatarUrl:
+    type: string
+    title: Avatar URL
+    description: Organization avatar image URL
+    required: false
+  description:
+    type: string
+    title: Description
+    description: Organization description
+    required: false
+mirror_properties: {}
+calculation_properties: {}
+relations: {}

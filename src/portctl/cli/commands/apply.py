@@ -1,4 +1,4 @@
-"""Apply command: push local YAML config to Port.io."""
+"""Push command: push local YAML config to Port.io."""
 
 from __future__ import annotations
 
@@ -19,10 +19,10 @@ if TYPE_CHECKING:
 console = Console()
 
 
-def apply_command(
+def push_command(
     org: Optional[str] = typer.Argument(  # noqa: UP007, UP045
         None,
-        help="Organization to apply to. Uses default org if not specified.",
+        help="Organization to push to. Uses default org if not specified.",
     ),
     yes: bool = typer.Option(
         False,
@@ -42,7 +42,7 @@ def apply_command(
         help="Filter by resource type (blueprints, scorecards).",
     ),
 ) -> None:
-    """Apply local YAML configuration to Port.io."""
+    """Push local configuration to Port.io."""
     from portctl.cli.guard import require_config
 
     config = require_config()
@@ -52,7 +52,7 @@ def apply_command(
             "[red]No default org set. Specify an org or set default_org in config.[/red]"
         )
         raise typer.Exit(code=1)
-    console.print(f"[dim]Running apply on {org_name}...[/dim]")
+    console.print(f"[dim]Pushing to {org_name}...[/dim]")
     try:
         asyncio.run(_apply_run(org_name, yes, prune, resource, config))
     except PortctlError as exc:
@@ -67,7 +67,7 @@ async def _apply_run(
     resource: str | None,
     config: PortctlConfig,
 ) -> None:
-    """Async implementation of the apply command.
+    """Async implementation of the push command.
 
     Args:
         org: Organization alias from config.
@@ -100,7 +100,7 @@ async def _apply_run(
 
         # Step 2: No changes -> exit 0
         if not plan.has_changes:
-            console.print("[green]Nothing to apply.[/green]")
+            console.print("[green]Nothing to push.[/green]")
             return
 
         # Step 3: Print plan output
@@ -114,15 +114,15 @@ async def _apply_run(
             )
             confirmation = typer.prompt("Type 'yes' to confirm")
             if confirmation != "yes":
-                console.print("[yellow]Apply cancelled.[/yellow]")
+                console.print("[yellow]Push cancelled.[/yellow]")
                 raise typer.Exit(code=0)
         elif not yes:
-            if not typer.confirm("Apply these changes?"):
-                console.print("[yellow]Apply cancelled.[/yellow]")
+            if not typer.confirm("Push these changes?"):
+                console.print("[yellow]Push cancelled.[/yellow]")
                 raise typer.Exit(code=0)
 
         # Step 5: Apply changes
-        with console.status("[blue]Applying...[/blue]"):
+        with console.status("[blue]Pushing...[/blue]"):
             result = await apply_org(
                 client, plan, prune=prune, config_dir=Path.cwd()
             )
@@ -155,7 +155,7 @@ async def _apply_run(
     console.print()
     if result.has_failures:
         console.print(
-            f"[red]Apply complete with errors[/red] "
+            f"[red]Push complete with errors[/red] "
             f"[dim]|[/dim] {result.created_count} created "
             f"[dim]|[/dim] {result.updated_count} updated "
             f"[dim]|[/dim] {result.deleted_count} deleted "
@@ -163,7 +163,7 @@ async def _apply_run(
         )
     else:
         console.print(
-            f"[green]Apply complete[/green] "
+            f"[green]Push complete[/green] "
             f"[dim]|[/dim] {result.created_count} created "
             f"[dim]|[/dim] {result.updated_count} updated "
             f"[dim]|[/dim] {result.deleted_count} deleted "

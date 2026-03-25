@@ -1,0 +1,20 @@
+identifier: team
+title: Team
+icon: Team
+properties:
+  slack_channel:
+    type: string
+    title: Slack Channel
+    required: false
+  oncall_schedule:
+    type: string
+    title: On-call Schedule
+    required: false
+    format: url
+  member_count:
+    type: number
+    title: Member Count
+    required: false
+mirror_properties: {}
+calculation_properties: {}
+relations: {}

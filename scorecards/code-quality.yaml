@@ -1,0 +1,42 @@
+identifier: code-quality
+title: Code Quality
+blueprint: microservice
+levels:
+- identifier: ''
+  title: Basic
+  color: paleBlue
+- identifier: ''
+  title: Bronze
+  color: bronze
+- identifier: ''
+  title: Silver
+  color: silver
+- identifier: ''
+  title: Gold
+  color: gold
+rules:
+- identifier: has-oncall-owner
+  title: Has On-call Owner
+  level: Silver
+  query:
+    combinator: and
+    conditions:
+    - property: on_call
+      operator: isNotEmpty
+
+- identifier: has-service-docs
+  title: Has Service Documentation
+  level: Bronze
+  query:
+    combinator: and
+    conditions:
+    - property: description
+      operator: isNotEmpty
+- identifier: has-repository
+  title: Has Repository
+  level: Bronze
+  query:
+    combinator: and
+    conditions:
+    - property: repository
+      operator: isNotEmpty

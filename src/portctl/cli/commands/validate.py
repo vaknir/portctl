@@ -24,7 +24,7 @@ def validate_command(
     """Validate local YAML syntax, schema, and cross-references.
 
     This checks your local files only -- it does not compare against the live
-    Port API. Use 'portctl diff' to see what would change on apply.
+    Port API. Use 'portctl diff' to see what would change on push.
     """
     result = validate(config_dir)
 
@@ -54,7 +54,7 @@ def validate_command(
         parts.append(f"[yellow]{warning_count} warning(s)[/yellow]")
 
     console.print()
-    console.print(f"{' . '.join(parts)} -- fix before applying")
+    console.print(f"{' . '.join(parts)} -- fix before pushing")
 
     if result.has_errors:
         raise typer.Exit(code=1)

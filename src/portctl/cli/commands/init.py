@@ -205,7 +205,7 @@ def init_command(
     mode: Optional[str] = typer.Option(  # noqa: UP007, UP045
         None,
         "--mode",
-        help="Init mode: 'existing' (export live config) or 'fresh' (scaffold templates).",
+        help="Init mode: 'existing' (pull live config) or 'fresh' (scaffold templates).",
     ),
     org_id: Optional[str] = typer.Option(  # noqa: UP007, UP045
         None,

@@ -81,7 +81,7 @@ def login(
     store_credentials(org_name, client_id, client_secret)
 
     # Ensure org exists in config file (creates ~/.portctl/config.yaml if needed)
-    ensure_org(org_name, api_url=api_url, set_default=True)
+    ensure_org(org_name, api_url=api_url)
 
     console.print(f"[green]\u2713 Authenticated as {org_name}[/green]")
 

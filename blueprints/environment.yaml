@@ -1,0 +1,27 @@
+identifier: environment
+title: Environment
+icon: Environment
+properties:
+  type:
+    type: string
+    title: Type
+    required: true
+    enum:
+    - development
+    - staging
+    - production
+  cloud_provider:
+    type: string
+    title: Cloud Provider
+    required: false
+    enum:
+    - AWS
+    - GCP
+    - Azure
+  region:
+    type: string
+    title: Region
+    required: false
+mirror_properties: {}
+calculation_properties: {}
+relations: {}

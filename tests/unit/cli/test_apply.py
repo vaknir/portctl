@@ -1,4 +1,4 @@
-"""Tests for apply CLI command."""
+"""Tests for push CLI command."""
 
 from __future__ import annotations
 
@@ -80,11 +80,11 @@ def _mock_apply_result_with_failure() -> ApplyResult:
     )
 
 
-class TestApplyNoChanges:
-    """test_apply_no_changes -- 'Nothing to apply' + exit 0."""
+class TestPushNoChanges:
+    """test_push_no_changes -- 'Nothing to push' + exit 0."""
 
-    def test_apply_no_changes(self) -> None:
-        """Apply exits 0 and prints 'Nothing to apply' when plan has no changes."""
+    def test_push_no_changes(self) -> None:
+        """Push exits 0 and prints 'Nothing to push' when plan has no changes."""
         with (
             patch("portctl.services.config.load_config", return_value=_mock_config()),
             patch(
@@ -107,17 +107,17 @@ class TestApplyNoChanges:
             mock_instance.__aenter__ = AsyncMock(return_value=mock_instance)
             mock_instance.__aexit__ = AsyncMock(return_value=False)
 
-            result = runner.invoke(app, ["apply", "prod", "--yes"])
+            result = runner.invoke(app, ["push", "prod", "--yes"])
 
         assert result.exit_code == 0
-        assert "Nothing to apply" in result.output
+        assert "Nothing to push" in result.output
 
 
-class TestApplyWithYesFlag:
-    """test_apply_with_yes_flag -- applies without prompt."""
+class TestPushWithYesFlag:
+    """test_push_with_yes_flag -- pushes without prompt."""
 
-    def test_apply_with_yes_flag(self) -> None:
-        """Apply with --yes flag skips confirmation and runs apply_org."""
+    def test_push_with_yes_flag(self) -> None:
+        """Push with --yes flag skips confirmation and runs apply_org."""
         with (
             patch("portctl.services.config.load_config", return_value=_mock_config()),
             patch(
@@ -148,17 +148,17 @@ class TestApplyWithYesFlag:
             mock_instance.__aenter__ = AsyncMock(return_value=mock_instance)
             mock_instance.__aexit__ = AsyncMock(return_value=False)
 
-            result = runner.invoke(app, ["apply", "prod", "--yes"])
+            result = runner.invoke(app, ["push", "prod", "--yes"])
 
         mock_apply.assert_called_once()
         assert result.exit_code == 0
 
 
-class TestApplySummary:
-    """test_apply_summary -- shows correct counts."""
+class TestPushSummary:
+    """test_push_summary -- shows correct counts."""
 
-    def test_apply_summary(self) -> None:
-        """Apply prints a summary with correct counts."""
+    def test_push_summary(self) -> None:
+        """Push prints a summary with correct counts."""
         with (
             patch("portctl.services.config.load_config", return_value=_mock_config()),
             patch(
@@ -189,7 +189,7 @@ class TestApplySummary:
             mock_instance.__aenter__ = AsyncMock(return_value=mock_instance)
             mock_instance.__aexit__ = AsyncMock(return_value=False)
 
-            result = runner.invoke(app, ["apply", "prod", "--yes"])
+            result = runner.invoke(app, ["push", "prod", "--yes"])
 
         assert result.exit_code == 0
         assert "1 created" in result.output

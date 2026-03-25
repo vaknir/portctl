@@ -1,0 +1,37 @@
+identifier: deployment
+title: Deployment
+icon: Deployment
+properties:
+  version:
+    type: string
+    title: Version
+    required: true
+  status:
+    type: string
+    title: Status
+    required: false
+    enum:
+    - running
+    - failed
+    - rolled_back
+  deployed_at:
+    type: string
+    title: Deployed At
+    required: false
+  commit_sha:
+    type: string
+    title: Commit SHA
+    required: false
+mirror_properties: {}
+calculation_properties: {}
+relations:
+  service:
+    target: microservice
+    title: Service
+    many: false
+    required: false
+  target:
+    target: environment
+    title: Target
+    many: false
+    required: false

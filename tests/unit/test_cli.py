@@ -15,9 +15,9 @@ runner = CliRunner()
 EXPECTED_COMMAND_GROUPS = [
     "auth",
     "org",
-    "export",
+    "pull",
     "diff",
-    "apply",
+    "push",
     "validate",
     "blueprint",
 ]

@@ -1,0 +1,53 @@
+identifier: service
+title: Service
+icon: Microservice
+properties: {}
+mirror_properties:
+  repo_id:
+    title: Repo ID
+    path: repository.$identifier
+  last_push:
+    title: 'Last push '
+    path: repository.last_push
+  defaultBranch:
+    title: Default branch
+    path: repository.defaultBranch
+  url:
+    title: Repository URL
+    path: repository.url
+  description:
+    title: Description
+    path: repository.description
+  visibility:
+    title: Visibility
+    path: repository.visibility
+  language:
+    title: 'Language '
+    path: repository.language
+  last_contributor:
+    title: 'Last contributor '
+    path: repository.last_contributor
+  require_code_owner_review:
+    title: 'Require code owner review '
+    path: repository.require_code_owner_review
+  required_approvals_for_pr:
+    title: Required approvals for PR
+    path: repository.require_approval_count
+  readme:
+    title: README
+    path: repository.readme
+  codeowners:
+    title: CODEOWNERS
+    path: repository.codeowners
+calculation_properties:
+  freshness:
+    title: 'Repository Freshness '
+    calculation: ((now | todateiso8601) as $now | ($now | fromdateiso8601) - (.properties.last_push | fromdateiso8601)) 
+      / 86400 | floor
+    type: number
+relations:
+  repository:
+    target: githubRepository
+    title: Repository
+    many: false
+    required: false

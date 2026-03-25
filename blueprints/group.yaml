@@ -1,0 +1,8 @@
+identifier: group
+title: Group
+icon: Home
+description: A group of teams, such as Tribe, Domain or Business Unit
+properties: {}
+mirror_properties: {}
+calculation_properties: {}
+relations: {}

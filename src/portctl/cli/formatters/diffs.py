@@ -240,14 +240,14 @@ def _build_change_lines(diff: dict[str, Any]) -> Text:
         else:
             top_lines.append((line, "yellow"))
 
-    # dictionary_item_added: + field_name [type]
+    # dictionary_item_added: local has it, remote doesn't → will add
     added = diff.get("dictionary_item_added", {})
     added_paths = added if isinstance(added, dict) else {p: None for p in added}
     for path in added_paths:
         clean = _clean_path(str(path))
         type_info = _extract_type_info(diff, path)
-        suffix = f"     {type_info}" if type_info else ""
-        line = f"  + {clean}{suffix}"
+        suffix = f"  ({type_info})" if type_info else ""
+        line = f"  + add {clean}{suffix}"
         if _is_property_path(clean):
             prop_lines.append((line, "green"))
         elif _is_relation_path(clean):
@@ -255,12 +255,12 @@ def _build_change_lines(diff: dict[str, Any]) -> Text:
         else:
             top_lines.append((line, "green"))
 
-    # dictionary_item_removed: - field_name
+    # dictionary_item_removed: remote has it, local doesn't → will remove
     removed = diff.get("dictionary_item_removed", {})
     removed_paths = removed if isinstance(removed, dict) else list(removed)
     for path in removed_paths:
         clean = _clean_path(str(path))
-        line = f"  - {clean}"
+        line = f"  - remove {clean} (exists on remote only)"
         if _is_property_path(clean):
             prop_lines.append((line, "red"))
         elif _is_relation_path(clean):
@@ -268,19 +268,19 @@ def _build_change_lines(diff: dict[str, Any]) -> Text:
         else:
             top_lines.append((line, "red"))
 
-    # iterable_item_added: + list_item (e.g. new scorecard rule)
+    # iterable_item_added: new item in local → will add
     for path, value in diff.get("iterable_item_added", {}).items():
         clean = _clean_path(str(path))
         label = value.get("identifier", "") if isinstance(value, dict) else ""
-        suffix = f" ({label})" if label else ""
-        top_lines.append((f"  + {clean}{suffix}", "green"))
+        display = label or clean
+        top_lines.append((f"  + add rule '{display}'", "green"))
 
-    # iterable_item_removed: - list_item (e.g. removed scorecard rule)
+    # iterable_item_removed: item only on remote → will remove
     for path, value in diff.get("iterable_item_removed", {}).items():
         clean = _clean_path(str(path))
         label = value.get("identifier", "") if isinstance(value, dict) else ""
-        suffix = f" ({label})" if label else ""
-        top_lines.append((f"  - {clean}{suffix}", "red"))
+        display = label or clean
+        top_lines.append((f"  - remove rule '{display}' (remote only)", "red"))
 
     text = Text()
     for line, style in top_lines:
@@ -319,7 +319,10 @@ def _render_change_panel(change: ResourceChange) -> Panel:
         body = Text()
         body.append("  ", style="default")
         body.append("WARNING", style="bold red")
-        body.append(f" BREAKING -- will delete existing {resource_label.lower()}\n", style="red")
+        body.append(" BREAKING", style="red")
+        body.append(f" -- will delete {resource_label.lower()} ", style="red")
+        body.append(f"'{change.identifier}'", style="bold red")
+        body.append(" from remote\n", style="red")
     elif change.action == "update" and change.diff:
         body = _build_change_lines(change.diff)
     else:
@@ -373,8 +376,35 @@ def format_plan(plan: PlanResult, console: Console) -> None:
             continue
         console.print()
         console.print(f"[bold]{resource_type.capitalize()}s[/bold]")
-        for change in changes:
+
+        # Separate deletes from other changes
+        deletes = [c for c in changes if c.action == "delete"]
+        others = [c for c in changes if c.action != "delete"]
+
+        for change in others:
             console.print(_render_change_panel(change))
+
+        # Compact deletes into a single panel when there are multiple
+        if len(deletes) > 1:
+            body = Text()
+            body.append("  ", style="default")
+            body.append("WARNING", style="bold red")
+            body.append(
+                f" BREAKING -- will delete {len(deletes)}"
+                f" {resource_type}(s) from remote:\n",
+                style="red",
+            )
+            for d in deletes:
+                body.append(f"    - {d.identifier}\n", style="red")
+            console.print(Panel(
+                body,
+                title=f"- {len(deletes)} deletions",
+                title_align="left",
+                border_style="red",
+                padding=(0, 1),
+            ))
+        elif len(deletes) == 1:
+            console.print(_render_change_panel(deletes[0]))
 
     # Per-resource-type counts
     console.print()

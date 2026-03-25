@@ -1,0 +1,74 @@
+identifier: githubRepository
+title: Repository
+icon: Github
+properties:
+  readme:
+    type: string
+    title: README
+    required: false
+    format: markdown
+  codeowners:
+    type: string
+    title: CODEOWNERS
+    required: false
+    format: markdown
+  url:
+    type: string
+    title: Repository URL
+    required: false
+    format: url
+    icon: DefaultProperty
+  defaultBranch:
+    type: string
+    title: Default branch
+    required: false
+  description:
+    type: string
+    title: Description
+    required: false
+  visibility:
+    type: string
+    title: Visibility
+    required: false
+  language:
+    type: string
+    title: Language
+    required: false
+  last_contributor:
+    type: string
+    title: Last contributor
+    required: false
+    format: user
+    icon: TwoUsers
+  last_push:
+    type: string
+    title: Last push
+    description: Last commit to the main branch
+    required: false
+    format: date-time
+    icon: GitPullRequest
+  require_code_owner_review:
+    type: boolean
+    title: Require code owner review
+    description: Requires review from code owners before a pull request can be merged
+    required: false
+    icon: DefaultProperty
+  require_approval_count:
+    type: number
+    title: Require approvals
+    description: The number of approvals required before merging a pull request
+    required: false
+    icon: DefaultProperty
+mirror_properties: {}
+calculation_properties: {}
+relations:
+  githubTeams:
+    target: githubTeam
+    title: GitHub Teams
+    many: true
+    required: false
+  organization:
+    target: githubOrganization
+    title: Organization
+    many: false
+    required: false

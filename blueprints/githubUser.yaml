@@ -1,0 +1,16 @@
+identifier: githubUser
+title: Github User
+icon: Github
+properties:
+  email:
+    type: string
+    title: Email
+    required: false
+mirror_properties: {}
+calculation_properties: {}
+relations:
+  github_team:
+    target: githubTeam
+    title: Github Team
+    many: true
+    required: false

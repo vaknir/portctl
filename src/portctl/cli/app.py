@@ -6,10 +6,10 @@ from typing import Optional
 
 import typer
 
-from portctl.cli.commands.apply import apply_command
+from portctl.cli.commands.apply import push_command
 from portctl.cli.commands.auth import app as auth_app
 from portctl.cli.commands.blueprint import app as blueprint_app
-from portctl.cli.commands.export import export_command
+from portctl.cli.commands.export import pull_command
 from portctl.cli.commands.init import init_command
 from portctl.cli.commands.org import app as org_app
 from portctl.cli.commands.plan import diff_command
@@ -50,9 +50,9 @@ app.command(name="init")(init_command)
 app.command(name="whoami")(whoami)
 app.add_typer(auth_app, name="auth", help="Authenticate with Port.io.")
 app.add_typer(org_app, name="org", help="Manage organizations.")
-app.command(name="export")(export_command)
+app.command(name="pull")(pull_command)
 app.command(name="diff")(diff_command)
-app.command(name="apply")(apply_command)
+app.command(name="push")(push_command)
 app.command(name="validate")(validate_command)
 app.add_typer(blueprint_app, name="blueprint", help="Inspect blueprints.")
 app.command(name="seed")(seed_command)

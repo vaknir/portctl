@@ -1,0 +1,34 @@
+identifier: githubTeam
+title: GitHub Team
+icon: Github
+properties:
+  slug:
+    type: string
+    title: Slug
+    required: false
+  description:
+    type: string
+    title: Description
+    required: false
+  link:
+    type: string
+    title: Link
+    required: false
+    format: url
+    icon: Link
+  permission:
+    type: string
+    title: Permission
+    required: false
+  notification_setting:
+    type: string
+    title: Notification Setting
+    required: false
+mirror_properties: {}
+calculation_properties: {}
+relations:
+  members:
+    target: githubUser
+    title: Members
+    many: true
+    required: false

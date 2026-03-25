@@ -1,0 +1,42 @@
+identifier: production-readiness
+title: Production Readiness
+blueprint: microservice
+levels:
+- identifier: ''
+  title: Basic
+  color: paleBlue
+- identifier: ''
+  title: Bronze
+  color: bronze
+- identifier: ''
+  title: Silver
+  color: silver
+- identifier: ''
+  title: Gold
+  color: gold
+rules:
+- identifier: is-critical-or-standard
+  title: Is Critical or Standard
+  level: Gold
+  query:
+    combinator: and
+    conditions:
+    - property: tier
+      operator: '!='
+      value: internal
+- identifier: has-on-call
+  title: Has On-call
+  level: Silver
+  query:
+    combinator: and
+    conditions:
+    - property: on_call
+      operator: isNotEmpty
+- identifier: has-description
+  title: Has Description
+  level: Bronze
+  query:
+    combinator: and
+    conditions:
+    - property: description
+      operator: isNotEmpty

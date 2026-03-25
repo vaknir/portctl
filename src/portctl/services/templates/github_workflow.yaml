@@ -20,14 +20,14 @@ jobs:
           PORT_CLIENT_ID: ${{ secrets.PORT_CLIENT_ID }}
           PORT_CLIENT_SECRET: ${{ secrets.PORT_CLIENT_SECRET }}
 
-  apply:
+  push:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v4
       - run: uv tool install portctl
-      - run: portctl apply {org_name} --yes
+      - run: portctl push {org_name} --yes
         env:
           PORT_CLIENT_ID: ${{ secrets.PORT_CLIENT_ID }}
           PORT_CLIENT_SECRET: ${{ secrets.PORT_CLIENT_SECRET }}

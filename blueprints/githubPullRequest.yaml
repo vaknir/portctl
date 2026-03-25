@@ -1,0 +1,105 @@
+identifier: githubPullRequest
+title: Pull Request
+icon: Github
+properties:
+  status:
+    type: string
+    title: Status
+    required: false
+    enum:
+    - merged
+    - open
+    - closed
+  closedAt:
+    type: string
+    title: Closed at
+    required: false
+    format: date-time
+  updatedAt:
+    type: string
+    title: Updated at
+    required: false
+    format: date-time
+  mergedAt:
+    type: string
+    title: Merged at
+    required: false
+    format: date-time
+  createdAt:
+    type: string
+    title: Created at
+    required: false
+    format: date-time
+  link:
+    type: string
+    title: Link
+    required: false
+    format: url
+  prNumber:
+    type: number
+    title: PR number
+    required: false
+  leadTimeHours:
+    type: number
+    title: Lead time in hours
+    required: false
+  branch:
+    type: string
+    title: Branch
+    required: false
+mirror_properties:
+  reviewer_teams:
+    title: Reviewer Teams
+    path: reviewers.$team
+calculation_properties:
+  days_old:
+    title: Days Old
+    calculation: (now / 86400) - (.properties.createdAt | capture("(?<date>\\d{4}-\\d{2}-\\d{2})") | .date | 
+      strptime("%Y-%m-%d") | mktime / 86400) | floor
+    type: number
+relations:
+  creator:
+    target: _user
+    title: Creator
+    many: false
+    required: false
+  organization:
+    target: githubOrganization
+    title: Organization
+    many: false
+    required: false
+  repository:
+    target: githubRepository
+    title: Repository
+    many: false
+    required: false
+  git_hub_creator:
+    target: githubUser
+    title: GitHub Creator
+    many: false
+    required: false
+  assignees:
+    target: _user
+    title: Assignees
+    many: true
+    required: false
+  git_hub_reviewers:
+    target: githubUser
+    title: GitHub Reviewers
+    many: true
+    required: false
+  git_hub_assignees:
+    target: githubUser
+    title: GitHub Assignees
+    many: true
+    required: false
+  reviewers:
+    target: _user
+    title: Reviewers
+    many: true
+    required: false
+  service:
+    target: service
+    title: Service
+    many: false
+    required: false

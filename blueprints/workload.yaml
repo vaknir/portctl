@@ -1,0 +1,22 @@
+identifier: workload
+title: Workload
+icon: Deployment
+properties:
+  version:
+    type: string
+    title: Version
+    description: The version of the running service in this environment
+    required: false
+mirror_properties: {}
+calculation_properties: {}
+relations:
+  service:
+    target: service
+    title: Service
+    many: false
+    required: false
+  environment:
+    target: environment
+    title: Environment
+    many: false
+    required: false

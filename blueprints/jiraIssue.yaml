@@ -1,0 +1,107 @@
+identifier: jiraIssue
+title: Jira Issue
+icon: Jira
+properties:
+  url:
+    type: string
+    title: Issue URL
+    description: URL to the issue in Jira
+    required: false
+    format: url
+  status:
+    type: string
+    title: Status
+    description: The status of the issue
+    required: false
+  issueType:
+    type: string
+    title: Type
+    description: The type of the issue
+    required: false
+  components:
+    type: array
+    title: Components
+    description: The components related to this issue
+    required: false
+  creator:
+    type: string
+    title: Creator
+    description: The user that created to the issue
+    required: false
+    format: user
+  priority:
+    type: string
+    title: Priority
+    description: The priority of the issue
+    required: false
+  labels:
+    type: array
+    title: Labels
+    required: false
+  created:
+    type: string
+    title: Created At
+    description: The created datetime of the issue
+    required: false
+    format: date-time
+  updated:
+    type: string
+    title: Updated At
+    description: The updated datetime of the issue
+    required: false
+    format: date-time
+  resolutionDate:
+    type: string
+    title: Resolved At
+    description: The datetime the issue changed to a resolved state
+    required: false
+    format: date-time
+mirror_properties: {}
+calculation_properties:
+  handlingDuration:
+    title: Handling Duration (Days)
+    calculation: if (.properties.resolutionDate != null and .properties.created != null) then 
+      ((.properties.resolutionDate[0:19] + "Z" | fromdateiso8601) - (.properties.created[0:19] + "Z" | fromdateiso8601))
+      / 86400 else null end
+    type: number
+relations:
+  service:
+    target: service
+    title: Service
+    many: false
+    required: false
+  subtasks:
+    target: jiraIssue
+    title: Subtasks
+    many: true
+    required: false
+  project:
+    target: jiraProject
+    title: Project
+    many: false
+    required: false
+  jira_user_reporter:
+    target: jiraUser
+    title: Reporter (Jira User)
+    many: false
+    required: false
+  reporter:
+    target: _user
+    title: Reporter
+    many: false
+    required: false
+  assignee:
+    target: _user
+    title: Assignee
+    many: false
+    required: false
+  jira_user_assignee:
+    target: jiraUser
+    title: Assignee (Jira User)
+    many: false
+    required: false
+  parentIssue:
+    target: jiraIssue
+    title: Parent Issue
+    many: false
+    required: false

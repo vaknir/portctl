@@ -1,0 +1,29 @@
+identifier: jiraUser
+title: Jira User
+icon: Jira
+description: A Jira user account
+properties:
+  emailAddress:
+    type: string
+    title: Email
+    description: User's email address
+    required: false
+    format: email
+  displayName:
+    type: string
+    title: Display Name
+    description: User's full name as displayed in Jira
+    required: false
+  active:
+    type: boolean
+    title: Active Status
+    description: Whether the user account is active
+    required: false
+  accountType:
+    type: string
+    title: Account Type
+    description: Type of Jira account (e.g., atlassian, customer)
+    required: false
+mirror_properties: {}
+calculation_properties: {}
+relations: {}

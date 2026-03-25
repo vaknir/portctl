@@ -170,7 +170,7 @@ async def _seed(
             f"{total_entities} entities\n\n"
             f"Explore:\n"
             f"  [bold]portctl blueprint show microservice[/bold]\n"
-            f"  [bold]portctl export {org_name}[/bold]",
+            f"  [bold]portctl pull {org_name}[/bold]",
             border_style="green",
         )
     )

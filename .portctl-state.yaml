@@ -370,3 +370,192 @@ export_events:
   - resource_type: scorecard
     identifier: code-quality
     action: imported
+- id: initial-export
+  timestamp: '2026-03-25T19:58:00.937816+00:00'
+  applied_by: vaknir
+  via: export
+  note: Initial export -- baseline snapshot
+  changes:
+  - resource_type: blueprint
+    identifier: group
+    action: imported
+  - resource_type: blueprint
+    identifier: jiraProject
+    action: imported
+  - resource_type: blueprint
+    identifier: service
+    action: imported
+  - resource_type: blueprint
+    identifier: githubUser
+    action: imported
+  - resource_type: blueprint
+    identifier: githubOrganization
+    action: imported
+  - resource_type: blueprint
+    identifier: githubRepository
+    action: imported
+  - resource_type: blueprint
+    identifier: workload
+    action: imported
+  - resource_type: blueprint
+    identifier: jiraUser
+    action: imported
+  - resource_type: blueprint
+    identifier: githubTeam
+    action: imported
+  - resource_type: blueprint
+    identifier: team
+    action: imported
+  - resource_type: blueprint
+    identifier: githubPullRequest
+    action: imported
+  - resource_type: blueprint
+    identifier: microservice
+    action: imported
+  - resource_type: blueprint
+    identifier: environment
+    action: imported
+  - resource_type: blueprint
+    identifier: jiraIssue
+    action: imported
+  - resource_type: blueprint
+    identifier: deployment
+    action: imported
+  - resource_type: scorecard
+    identifier: ProductionReadinessGithubOcean
+    action: imported
+  - resource_type: scorecard
+    identifier: production-readiness
+    action: imported
+  - resource_type: scorecard
+    identifier: security
+    action: imported
+  - resource_type: scorecard
+    identifier: code-quality
+    action: imported
+- id: initial-export
+  timestamp: '2026-03-25T20:10:53.193691+00:00'
+  applied_by: vaknir
+  via: export
+  note: Initial export -- baseline snapshot
+  changes:
+  - resource_type: blueprint
+    identifier: group
+    action: imported
+  - resource_type: blueprint
+    identifier: jiraProject
+    action: imported
+  - resource_type: blueprint
+    identifier: service
+    action: imported
+  - resource_type: blueprint
+    identifier: githubUser
+    action: imported
+  - resource_type: blueprint
+    identifier: githubOrganization
+    action: imported
+  - resource_type: blueprint
+    identifier: githubRepository
+    action: imported
+  - resource_type: blueprint
+    identifier: workload
+    action: imported
+  - resource_type: blueprint
+    identifier: jiraUser
+    action: imported
+  - resource_type: blueprint
+    identifier: githubTeam
+    action: imported
+  - resource_type: blueprint
+    identifier: team
+    action: imported
+  - resource_type: blueprint
+    identifier: githubPullRequest
+    action: imported
+  - resource_type: blueprint
+    identifier: microservice
+    action: imported
+  - resource_type: blueprint
+    identifier: environment
+    action: imported
+  - resource_type: blueprint
+    identifier: jiraIssue
+    action: imported
+  - resource_type: blueprint
+    identifier: deployment
+    action: imported
+  - resource_type: scorecard
+    identifier: ProductionReadinessGithubOcean
+    action: imported
+  - resource_type: scorecard
+    identifier: production-readiness
+    action: imported
+  - resource_type: scorecard
+    identifier: security
+    action: imported
+  - resource_type: scorecard
+    identifier: code-quality
+    action: imported
+- id: initial-export
+  timestamp: '2026-03-25T20:15:12.162470+00:00'
+  applied_by: vaknir
+  via: export
+  note: Initial export -- baseline snapshot
+  changes:
+  - resource_type: blueprint
+    identifier: group
+    action: imported
+  - resource_type: blueprint
+    identifier: jiraProject
+    action: imported
+  - resource_type: blueprint
+    identifier: service
+    action: imported
+  - resource_type: blueprint
+    identifier: githubUser
+    action: imported
+  - resource_type: blueprint
+    identifier: githubOrganization
+    action: imported
+  - resource_type: blueprint
+    identifier: githubRepository
+    action: imported
+  - resource_type: blueprint
+    identifier: workload
+    action: imported
+  - resource_type: blueprint
+    identifier: jiraUser
+    action: imported
+  - resource_type: blueprint
+    identifier: githubTeam
+    action: imported
+  - resource_type: blueprint
+    identifier: team
+    action: imported
+  - resource_type: blueprint
+    identifier: githubPullRequest
+    action: imported
+  - resource_type: blueprint
+    identifier: microservice
+    action: imported
+  - resource_type: blueprint
+    identifier: environment
+    action: imported
+  - resource_type: blueprint
+    identifier: jiraIssue
+    action: imported
+  - resource_type: blueprint
+    identifier: deployment
+    action: imported
+  - resource_type: scorecard
+    identifier: ProductionReadinessGithubOcean
+    action: imported
+  - resource_type: scorecard
+    identifier: production-readiness
+    action: imported
+  - resource_type: scorecard
+    identifier: security
+    action: imported
+  - resource_type: scorecard
+    identifier: code-quality
+    action: imported

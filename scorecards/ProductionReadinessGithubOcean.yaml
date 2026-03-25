@@ -1,0 +1,78 @@
+identifier: ProductionReadinessGithubOcean
+title: Production Readiness
+blueprint: service
+levels:
+- identifier: ''
+  title: F
+  color: red
+- identifier: ''
+  title: C
+  color: yellow
+- identifier: ''
+  title: B
+  color: orange
+- identifier: ''
+  title: A
+  color: green
+rules:
+- identifier: hasReadme
+  title: Has a readme
+  level: C
+  query:
+    combinator: and
+    conditions:
+    - property: readme
+      operator: isNotEmpty
+- identifier: fressnessUnderYear
+  title: Freshness < year
+  level: B
+  query:
+    combinator: and
+    conditions:
+    - property: freshness
+      operator: <
+      value: 366
+- identifier: ownerProtection
+  title: Branch protection set
+  level: A
+  query:
+    combinator: and
+    conditions:
+    - property: require_code_owner_review
+      operator: '='
+      value: 'true'
+- identifier: fressnessUnder30
+  title: Freshness < 30 days
+  level: A
+  query:
+    combinator: and
+    conditions:
+    - property: freshness
+      operator: <
+      value: 30
+- identifier: branchProtection
+  title: Branch protection set
+  level: B
+  query:
+    combinator: and
+    conditions:
+    - property: required_approvals_for_pr
+      operator: '>'
+      value: 0
+- identifier: hasTeam
+  title: Has a Team
+  level: B
+  query:
+    combinator: and
+    conditions:
+    - property: $team
+      operator: isNotEmpty
+- identifier: fressnessUnder90
+  title: Freshness < 90 days
+  level: B
+  query:
+    combinator: and
+    conditions:
+    - property: freshness
+      operator: <
+      value: 90

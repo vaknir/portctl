@@ -1,0 +1,42 @@
+identifier: microservice
+title: Microservice
+icon: Microservice
+properties:
+  language:
+    type: string
+    title: Language
+    required: true
+  repository:
+    type: string
+    title: Repository
+    required: false
+    format: url
+  tier:
+    type: string
+    title: Tier
+    required: false
+    enum:
+    - critical
+    - standard
+    - internal
+  on_call:
+    type: string
+    title: On-call
+    required: false
+  description:
+    type: string
+    title: Description
+    required: false
+mirror_properties: {}
+calculation_properties: {}
+relations:
+  deployed_to:
+    target: environment
+    title: Deployed To
+    many: true
+    required: false
+  owned_by:
+    target: team
+    title: Owned By
+    many: false
+    required: false

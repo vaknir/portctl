@@ -205,7 +205,7 @@ def generate_ci_workflow(
 
     Currently supports GitHub Actions. The generated workflow runs
     ``portctl validate`` and ``portctl plan`` on PRs, and
-    ``portctl apply`` on pushes to main.
+    ``portctl push`` on pushes to main.
 
     Args:
         project_dir: Root project directory.

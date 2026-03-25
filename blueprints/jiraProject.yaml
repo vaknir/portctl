@@ -1,0 +1,14 @@
+identifier: jiraProject
+title: Jira Project
+icon: Jira
+description: A Jira project
+properties:
+  url:
+    type: string
+    title: Project URL
+    description: URL to the project in Jira
+    required: false
+    format: url
+mirror_properties: {}
+calculation_properties: {}
+relations: {}
