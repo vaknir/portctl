@@ -9,12 +9,10 @@ from rich.console import Console
 
 from portctl.validation.pipeline import validate
 
-app = typer.Typer(no_args_is_help=True)
 console = Console()
 
 
-@app.command(name="run")
-def validate_run(
+def validate_command(
     config_dir: Path = typer.Argument(  # noqa: B008
         ".",
         help="Root directory containing blueprints/ and scorecards/ subdirectories.",
@@ -23,11 +21,16 @@ def validate_run(
         resolve_path=True,
     ),
 ) -> None:
-    """Validate local YAML configuration files."""
+    """Validate local YAML syntax, schema, and cross-references.
+
+    This checks your local files only -- it does not compare against the live
+    Port API. Use 'portctl diff' to see what would change on apply.
+    """
     result = validate(config_dir)
 
     if not result.issues:
-        console.print("[green]All checks passed.[/green]")
+        console.print("[green]Local YAML validation passed.[/green]")
+        console.print("[dim]Run 'portctl diff' to compare against remote.[/dim]")
         raise typer.Exit(code=0)
 
     for issue in result.issues:

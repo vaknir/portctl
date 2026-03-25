@@ -14,7 +14,7 @@ from portctl.cli.commands.init import init_command
 from portctl.cli.commands.org import app as org_app
 from portctl.cli.commands.plan import diff_command
 from portctl.cli.commands.seed import seed_command
-from portctl.cli.commands.validate import app as validate_app
+from portctl.cli.commands.validate import validate_command
 from portctl.cli.commands.whoami import whoami  # noqa: I001
 from portctl.constants import VERSION
 
@@ -53,7 +53,7 @@ app.add_typer(org_app, name="org", help="Manage organizations.")
 app.command(name="export")(export_command)
 app.command(name="diff")(diff_command)
 app.command(name="apply")(apply_command)
-app.add_typer(validate_app, name="validate", help="Validate local YAML config.")
+app.command(name="validate")(validate_command)
 app.add_typer(blueprint_app, name="blueprint", help="Inspect blueprints.")
 app.command(name="seed")(seed_command)
 
