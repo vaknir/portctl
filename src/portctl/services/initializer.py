@@ -35,6 +35,7 @@ class InitOptions:
 
     org_name: str
     mode: Literal["existing", "fresh"]
+    org_id: str = ""
     client_id: str | None = None
     client_secret: str | None = None
     api_url: str = DEFAULT_API_URL
@@ -67,13 +68,16 @@ def _templates_package() -> importlib.resources.abc.Traversable:
     return importlib.resources.files("portctl.services") / "templates"
 
 
-def write_config_file(config_dir: Path, org_name: str, api_url: str) -> Path:
+def write_config_file(
+    config_dir: Path, org_name: str, api_url: str, *, org_id: str = ""
+) -> Path:
     """Write ~/.portctl/config.yaml with the org entry. No credentials inline.
 
     Args:
         config_dir: Directory for the config file (e.g. ``~/.portctl``).
         org_name: Organization alias.
         api_url: Port API base URL.
+        org_id: Port organization ID.
 
     Returns:
         Path to the created config file.
@@ -81,20 +85,69 @@ def write_config_file(config_dir: Path, org_name: str, api_url: str) -> Path:
     config_dir.mkdir(parents=True, exist_ok=True)
     config_path = config_dir / "config.yaml"
 
+    org_entry: dict[str, str] = {
+        "name": org_name,
+        "api_url": api_url,
+    }
+    if org_id:
+        org_entry["org_id"] = org_id
+
     config_data = {
         "default_org": org_name,
         "orgs": {
-            org_name: {
-                "name": org_name,
-                "role": "development",
-                "api_url": api_url,
-            },
+            org_name: org_entry,
         },
     }
 
     config_path.write_text(yaml.dump(config_data, default_flow_style=False, sort_keys=False))
     logger.info("Created config file: %s", config_path)
     return config_path
+
+
+def _write_or_update_config(
+    config_dir: Path, org_name: str, api_url: str, *, org_id: str = ""
+) -> Path:
+    """Write or update ~/.portctl/config.yaml, preserving existing orgs.
+
+    If the config file exists, the new org is added (or updated if same alias).
+    If it doesn't exist, a fresh config is created.
+
+    Args:
+        config_dir: Directory for the config file.
+        org_name: Organization alias.
+        api_url: Port API base URL.
+        org_id: Port organization ID.
+
+    Returns:
+        Path to the config file.
+    """
+    config_path = config_dir / "config.yaml"
+
+    if config_path.exists():
+        raw = yaml.safe_load(config_path.read_text(encoding="utf-8")) or {}
+        orgs = raw.get("orgs", {})
+
+        org_entry: dict[str, str] = {
+            "name": org_name,
+            "api_url": api_url,
+        }
+        if org_id:
+            org_entry["org_id"] = org_id
+
+        orgs[org_name] = org_entry
+
+        raw["orgs"] = orgs
+        if raw.get("default_org") is None:
+            raw["default_org"] = org_name
+
+        config_dir.mkdir(parents=True, exist_ok=True)
+        config_path.write_text(
+            yaml.dump(raw, default_flow_style=False, sort_keys=False), encoding="utf-8"
+        )
+        logger.info("Updated config file: %s", config_path)
+        return config_path
+
+    return write_config_file(config_dir, org_name, api_url, org_id=org_id)
 
 
 def write_project_state(project_dir: Path) -> Path:
@@ -214,17 +267,12 @@ async def init_project(options: InitOptions) -> InitResult:
     Raises:
         ConfigError: If a config file already exists at the target location.
     """
-    config_path = options.config_dir / "config.yaml"
-    if config_path.exists():
-        raise ConfigError(
-            f"Config file already exists at {config_path}. "
-            f"Remove it first or use a different directory."
-        )
-
     files_created: list[Path] = []
 
-    # Write config
-    cfg_path = write_config_file(options.config_dir, options.org_name, options.api_url)
+    # Write or update config (adds new org, preserves existing orgs)
+    cfg_path = _write_or_update_config(
+        options.config_dir, options.org_name, options.api_url, org_id=options.org_id
+    )
     files_created.append(cfg_path)
 
     # Write project state

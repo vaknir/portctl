@@ -195,6 +195,22 @@ def validate_property_refs(
     issues: list[ValidationIssue] = []
     bp_properties = set(blueprint_data.get("properties", {}).keys())
 
+    # Include mirror properties — these are derived from relations
+    mirror_props = blueprint_data.get("mirror_properties", {})
+    if isinstance(mirror_props, dict):
+        bp_properties.update(mirror_props.keys())
+
+    # Include calculation properties — these are computed fields
+    calc_props = blueprint_data.get("calculation_properties", {})
+    if isinstance(calc_props, dict):
+        bp_properties.update(calc_props.keys())
+
+    # Include relation-prefixed properties (e.g. $team, $repository)
+    relations = blueprint_data.get("relations", {})
+    if isinstance(relations, dict):
+        for rel_key in relations:
+            bp_properties.add(f"${rel_key}")
+
     rules = scorecard_data.get("rules", [])
     if not isinstance(rules, list):
         return issues
@@ -212,6 +228,11 @@ def validate_property_refs(
             if not isinstance(condition, dict):
                 continue
             prop = condition.get("property")
+            if prop and prop.startswith("$"):
+                # $-prefixed properties reference relations or meta-properties
+                # that may not be declared in the blueprint schema (e.g. $team
+                # can reference a Port-internal relation). Skip validation.
+                continue
             if prop and prop not in bp_properties:
                 issues.append(
                     ValidationIssue(

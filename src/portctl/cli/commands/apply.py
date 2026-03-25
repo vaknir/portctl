@@ -16,13 +16,14 @@ from portctl.exceptions import PortctlError
 if TYPE_CHECKING:
     from portctl.models.config import PortctlConfig
 
-app = typer.Typer(no_args_is_help=True)
 console = Console()
 
 
-@app.command(name="run")
-def apply_run(
-    org: str = typer.Argument(help="Organization to apply to."),
+def apply_command(
+    org: Optional[str] = typer.Argument(  # noqa: UP007, UP045
+        None,
+        help="Organization to apply to. Uses default org if not specified.",
+    ),
     yes: bool = typer.Option(
         False,
         "--yes",
@@ -45,8 +46,15 @@ def apply_run(
     from portctl.cli.guard import require_config
 
     config = require_config()
+    org_name = org or config.default_org
+    if org_name is None:
+        console.print(
+            "[red]No default org set. Specify an org or set default_org in config.[/red]"
+        )
+        raise typer.Exit(code=1)
+    console.print(f"[dim]Running apply on {org_name}...[/dim]")
     try:
-        asyncio.run(_apply_run(org, yes, prune, resource, config))
+        asyncio.run(_apply_run(org_name, yes, prune, resource, config))
     except PortctlError as exc:
         console.print(f"[red]Error: {exc}[/red]")
         raise typer.Exit(code=1) from None

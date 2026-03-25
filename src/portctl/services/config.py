@@ -119,7 +119,7 @@ def save_config(config: PortctlConfig, path: Path | None = None) -> None:
 
     config_path.parent.mkdir(parents=True, exist_ok=True)
 
-    data = config.model_dump(mode="json")
+    data = config.model_dump(mode="json", exclude_defaults=True)
     config_path.write_text(
         yaml.dump(data, default_flow_style=False, sort_keys=False),
         encoding="utf-8",

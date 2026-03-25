@@ -120,7 +120,7 @@ class TestPortClientBlueprints:
             path = _strip_base(request.url.path)
             if path == AUTH_TOKEN:
                 return _auth_response()
-            if path == "/blueprints/service" and request.method == "PUT":
+            if path == "/blueprints" and request.method == "POST":
                 return httpx.Response(
                     200,
                     json={
@@ -176,15 +176,15 @@ class TestPortClientScorecards:
         assert result == [{"identifier": "production-readiness"}]
 
     async def test_upsert_scorecard(self) -> None:
-        """upsert_scorecard sends PUT and returns the scorecard."""
+        """upsert_scorecard sends POST and returns the scorecard."""
 
         def handler(request: httpx.Request) -> httpx.Response:
             path = _strip_base(request.url.path)
             if path == AUTH_TOKEN:
                 return _auth_response()
             if (
-                path == "/blueprints/service/scorecards/prod-ready"
-                and request.method == "PUT"
+                path == "/blueprints/service/scorecards"
+                and request.method == "POST"
             ):
                 return httpx.Response(
                     200,
@@ -400,15 +400,15 @@ class TestPortClientOther:
         assert result == [{"identifier": "my-svc"}]
 
     async def test_upsert_entity(self) -> None:
-        """upsert_entity sends PUT and returns the entity."""
+        """upsert_entity sends POST with upsert=true and returns the entity."""
 
         def handler(request: httpx.Request) -> httpx.Response:
             path = _strip_base(request.url.path)
             if path == AUTH_TOKEN:
                 return _auth_response()
             if (
-                path == "/blueprints/service/entities/my-svc"
-                and request.method == "PUT"
+                path == "/blueprints/service/entities"
+                and request.method == "POST"
             ):
                 return httpx.Response(
                     200,

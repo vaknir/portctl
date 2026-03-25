@@ -6,14 +6,14 @@ from typing import Optional
 
 import typer
 
-from portctl.cli.commands.apply import app as apply_app
+from portctl.cli.commands.apply import apply_command
 from portctl.cli.commands.auth import app as auth_app
 from portctl.cli.commands.blueprint import app as blueprint_app
-from portctl.cli.commands.export import app as export_app
+from portctl.cli.commands.export import export_command
 from portctl.cli.commands.init import init_command
 from portctl.cli.commands.org import app as org_app
-from portctl.cli.commands.plan import app as plan_app
-from portctl.cli.commands.seed import app as seed_app
+from portctl.cli.commands.plan import diff_command
+from portctl.cli.commands.seed import seed_command
 from portctl.cli.commands.validate import app as validate_app
 from portctl.cli.commands.whoami import whoami  # noqa: I001
 from portctl.constants import VERSION
@@ -50,12 +50,12 @@ app.command(name="init")(init_command)
 app.command(name="whoami")(whoami)
 app.add_typer(auth_app, name="auth", help="Authenticate with Port.io.")
 app.add_typer(org_app, name="org", help="Manage organizations.")
-app.add_typer(export_app, name="export", help="Export portal configuration to YAML.")
-app.add_typer(plan_app, name="plan", help="Show a dry-run diff of local vs live config.")
-app.add_typer(apply_app, name="apply", help="Apply local YAML config to Port.io.")
+app.command(name="export")(export_command)
+app.command(name="diff")(diff_command)
+app.command(name="apply")(apply_command)
 app.add_typer(validate_app, name="validate", help="Validate local YAML config.")
 app.add_typer(blueprint_app, name="blueprint", help="Inspect blueprints.")
-app.add_typer(seed_app, name="seed", help="Seed demo data.")
+app.command(name="seed")(seed_command)
 
 
 def main() -> None:

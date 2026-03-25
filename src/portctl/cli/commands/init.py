@@ -20,8 +20,6 @@ logger = logging.getLogger(__name__)
 
 console = Console()
 
-_ROLES = ["development", "staging", "production"]
-
 
 def _render_welcome_banner(con: Console) -> None:
     """Print the welcome panel at the start of the wizard.
@@ -142,6 +140,7 @@ async def _discover_resources(
 
 async def _run_init(
     org: str,
+    org_id: str,
     mode: str,
     client_id: str | None,
     client_secret: str | None,
@@ -156,6 +155,7 @@ async def _run_init(
 
     Args:
         org: Organization alias.
+        org_id: Port organization ID.
         mode: Init mode ('existing' or 'fresh').
         client_id: Port API client ID.
         client_secret: Port API client secret.
@@ -168,6 +168,7 @@ async def _run_init(
     """
     options = InitOptions(
         org_name=org,
+        org_id=org_id,
         mode=mode,  # type: ignore[arg-type]
         client_id=client_id,
         client_secret=client_secret,
@@ -205,6 +206,11 @@ def init_command(
         None,
         "--mode",
         help="Init mode: 'existing' (export live config) or 'fresh' (scaffold templates).",
+    ),
+    org_id: Optional[str] = typer.Option(  # noqa: UP007, UP045
+        None,
+        "--org-id",
+        help="Port organization ID.",
     ),
     client_id: Optional[str] = typer.Option(  # noqa: UP007, UP045
         None,
@@ -249,6 +255,7 @@ def init_command(
     if non_interactive:
         _run_non_interactive(
             org=org,
+            org_id=org_id or "",
             mode=mode,
             client_id=client_id,
             client_secret=client_secret,
@@ -260,6 +267,7 @@ def init_command(
     else:
         _run_wizard(
             org=org,
+            org_id=org_id,
             mode=mode,
             client_id=client_id,
             client_secret=client_secret,
@@ -273,6 +281,7 @@ def init_command(
 def _run_non_interactive(
     *,
     org: str | None,
+    org_id: str,
     mode: str | None,
     client_id: str | None,
     client_secret: str | None,
@@ -285,6 +294,7 @@ def _run_non_interactive(
 
     Args:
         org: Organization alias (required).
+        org_id: Port organization ID.
         mode: Init mode (required).
         client_id: Port API client ID.
         client_secret: Port API client secret.
@@ -307,6 +317,7 @@ def _run_non_interactive(
         asyncio.run(
             _run_init(
                 org=org,
+                org_id=org_id,
                 mode=mode,
                 client_id=client_id,
                 client_secret=client_secret,
@@ -324,6 +335,7 @@ def _run_non_interactive(
 def _run_wizard(
     *,
     org: str | None,
+    org_id: str | None,
     mode: str | None,
     client_id: str | None,
     client_secret: str | None,
@@ -336,6 +348,7 @@ def _run_wizard(
 
     Args:
         org: Pre-supplied organization alias (skips prompt if provided).
+        org_id: Pre-supplied Port organization ID (skips prompt if provided).
         mode: Pre-supplied mode (skips prompt if provided).
         client_id: Pre-supplied client ID (skips prompt if provided).
         client_secret: Pre-supplied client secret (skips prompt if provided).
@@ -347,12 +360,17 @@ def _run_wizard(
     _render_welcome_banner(console)
 
     # -- Step 1: Organization Setup --
-    _render_step_header(console, 1, 4, "Organization Setup")
+    _render_step_header(console, 1, 3, "Organization Setup")
+
+    if org_id is None:
+        org_id = typer.prompt("  Port Organization ID")
+    else:
+        console.print(f"  Org ID: [bold]{org_id}[/bold]")
 
     if org is None:
-        org = typer.prompt("  Organization alias (e.g. 'production', 'staging')")
+        org = typer.prompt("  What should we call this org? (e.g. production, staging)")
     else:
-        console.print(f"  Organization: [bold]{org}[/bold]")
+        console.print(f"  Alias: [bold]{org}[/bold]")
 
     if client_id is None:
         client_id = typer.prompt("  Port API Client ID")
@@ -382,27 +400,8 @@ def _run_wizard(
     )
     console.print()
 
-    # -- Step 2: Environment Role --
-    _render_step_header(console, 2, 4, "Environment Role")
-    console.print("  What role does this organization play?")
-    for i, role in enumerate(_ROLES, start=1):
-        console.print(f"    {i}) {role}")
-
-    role_choice = typer.prompt("  Choose", default="1")
-    try:
-        role_index = int(role_choice) - 1
-        if role_index < 0 or role_index >= len(_ROLES):
-            raise ValueError
-        selected_role = _ROLES[role_index]
-    except ValueError:
-        console.print(f"[red]Error: Invalid choice '{role_choice}'.[/red]")
-        raise typer.Exit(code=1) from None
-
-    console.print(f"  Role: [bold]{selected_role}[/bold]")
-    console.print()
-
-    # -- Step 3: Project Setup --
-    _render_step_header(console, 3, 4, "Project Setup")
+    # -- Step 2: Project Setup --
+    _render_step_header(console, 2, 3, "Project Setup")
 
     if blueprint_count > 0:
         console.print(f"  You have {blueprint_count} blueprint(s) in Port.io.")
@@ -420,8 +419,8 @@ def _run_wizard(
 
     console.print()
 
-    # -- Step 4: Extras --
-    _render_step_header(console, 4, 4, "Extras")
+    # -- Step 3: Extras --
+    _render_step_header(console, 3, 3, "Extras")
 
     generate_ci = not no_ci
     generate_ignore = not no_ignore
@@ -442,6 +441,7 @@ def _run_wizard(
             asyncio.run(
                 _run_init(
                     org=org,
+                    org_id=org_id or "",
                     mode=mode,
                     client_id=client_id,
                     client_secret=client_secret,

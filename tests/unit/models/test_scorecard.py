@@ -24,10 +24,10 @@ class TestScorecardLevel:
         assert level.title == "Gold"
         assert level.color == "gold"
 
-    def test_missing_identifier_rejected(self) -> None:
-        """identifier is required."""
-        with pytest.raises(ValidationError):
-            ScorecardLevel(title="Gold", color="gold")  # type: ignore[call-arg]
+    def test_missing_identifier_defaults_empty(self) -> None:
+        """identifier defaults to empty string (Port API may omit it)."""
+        level = ScorecardLevel(title="Gold", color="gold")
+        assert level.identifier == ""
 
     def test_missing_color_rejected(self) -> None:
         """color is required."""
