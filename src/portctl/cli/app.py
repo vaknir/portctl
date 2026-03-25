@@ -22,6 +22,7 @@ app = typer.Typer(
     name="portctl",
     help="GitOps CLI for Port.io -- kubectl for your developer portal.",
     no_args_is_help=True,
+    rich_markup_mode="rich",
 )
 
 
@@ -46,16 +47,30 @@ def main_callback(
     """portctl - GitOps CLI for Port.io."""
 
 
-app.command(name="init")(init_command)
-app.command(name="whoami")(whoami)
-app.add_typer(auth_app, name="auth", help="Authenticate with Port.io.")
-app.add_typer(org_app, name="org", help="Manage organizations.")
-app.command(name="pull")(pull_command)
-app.command(name="diff")(diff_command)
-app.command(name="push")(push_command)
-app.command(name="validate")(validate_command)
-app.add_typer(blueprint_app, name="blueprint", help="Inspect blueprints.")
-app.command(name="seed")(seed_command)
+# -- Setup --
+app.command(name="init", rich_help_panel="Setup")(init_command)
+app.add_typer(
+    auth_app, name="auth", help="Authenticate with Port.io.",
+    rich_help_panel="Setup",
+)
+app.add_typer(
+    org_app, name="org", help="Manage organizations.",
+    rich_help_panel="Setup",
+)
+
+# -- Workflow --
+app.command(name="pull", rich_help_panel="Workflow")(pull_command)
+app.command(name="diff", rich_help_panel="Workflow")(diff_command)
+app.command(name="push", rich_help_panel="Workflow")(push_command)
+app.command(name="validate", rich_help_panel="Workflow")(validate_command)
+
+# -- Utilities --
+app.command(name="whoami", rich_help_panel="Utilities")(whoami)
+app.add_typer(
+    blueprint_app, name="blueprint", help="Inspect blueprints.",
+    rich_help_panel="Utilities",
+)
+app.command(name="seed", rich_help_panel="Utilities")(seed_command)
 
 
 def main() -> None:
