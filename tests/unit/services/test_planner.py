@@ -398,3 +398,135 @@ class TestPlanUpdateShowsDiff:
         assert update.diff is not None
         # The diff should contain something about the description change
         assert len(update.diff) > 0
+
+
+class TestPlanScorecardRuleNormalization:
+    """Tests for _normalize_for_diff rule normalization on scorecards."""
+
+    async def test_api_injected_description_produces_no_diff(self, tmp_path: Path) -> None:
+        """Scorecard rules with API-injected description on remote but not local produce no diff."""
+        bp_data = _sample_blueprint_yaml()
+        _write_yaml(tmp_path / "blueprints" / "service.yaml", bp_data)
+
+        sc_local = _sample_scorecard_yaml()
+        _write_yaml(tmp_path / "scorecards" / "production-readiness.yaml", sc_local)
+
+        # Remote scorecard has API-injected 'description' on rules
+        sc_remote = _sample_scorecard_api()
+        for rule in sc_remote["rules"]:
+            rule["description"] = "Auto-generated description from API"
+
+        client = _make_mock_client(
+            blueprints=[_sample_blueprint_api()],
+            scorecards={"service": [sc_remote]},
+        )
+
+        result = await plan_org(client, tmp_path)
+
+        scorecard_updates = [c for c in result.updates if c.resource_type == "scorecard"]
+        assert len(scorecard_updates) == 0
+
+    async def test_rules_different_order_no_diff(self, tmp_path: Path) -> None:
+        """Rules in different order between local/remote produce no change."""
+        bp_data = _sample_blueprint_yaml()
+        _write_yaml(tmp_path / "blueprints" / "service.yaml", bp_data)
+
+        sc_local = _sample_scorecard_yaml()
+        sc_local["rules"] = [
+            {
+                "identifier": "rule-b",
+                "title": "Rule B",
+                "level": "Bronze",
+                "query": {"combinator": "and", "conditions": []},
+            },
+            {
+                "identifier": "rule-a",
+                "title": "Rule A",
+                "level": "Gold",
+                "query": {"combinator": "and", "conditions": []},
+            },
+        ]
+        _write_yaml(tmp_path / "scorecards" / "production-readiness.yaml", sc_local)
+
+        # Remote has rules in opposite order
+        sc_remote = _sample_scorecard_api()
+        sc_remote["rules"] = [
+            {
+                "identifier": "rule-a",
+                "title": "Rule A",
+                "level": "Gold",
+                "query": {"combinator": "and", "conditions": []},
+            },
+            {
+                "identifier": "rule-b",
+                "title": "Rule B",
+                "level": "Bronze",
+                "query": {"combinator": "and", "conditions": []},
+            },
+        ]
+
+        client = _make_mock_client(
+            blueprints=[_sample_blueprint_api()],
+            scorecards={"service": [sc_remote]},
+        )
+
+        result = await plan_org(client, tmp_path)
+
+        scorecard_updates = [c for c in result.updates if c.resource_type == "scorecard"]
+        assert len(scorecard_updates) == 0
+
+    async def test_rules_missing_identifier_no_crash(self, tmp_path: Path) -> None:
+        """Rules with missing identifier keys don't crash, falling back to empty string."""
+        bp_data = _sample_blueprint_yaml()
+        _write_yaml(tmp_path / "blueprints" / "service.yaml", bp_data)
+
+        sc_local = _sample_scorecard_yaml()
+        sc_local["rules"] = [
+            {
+                "title": "No Identifier Rule",
+                "level": "Bronze",
+                "query": {"combinator": "and", "conditions": []},
+            },
+        ]
+        _write_yaml(tmp_path / "scorecards" / "production-readiness.yaml", sc_local)
+
+        sc_remote = _sample_scorecard_api()
+        sc_remote["rules"] = [
+            {
+                "title": "No Identifier Rule",
+                "level": "Bronze",
+                "query": {"combinator": "and", "conditions": []},
+            },
+        ]
+
+        client = _make_mock_client(
+            blueprints=[_sample_blueprint_api()],
+            scorecards={"service": [sc_remote]},
+        )
+
+        result = await plan_org(client, tmp_path)
+
+        scorecard_updates = [c for c in result.updates if c.resource_type == "scorecard"]
+        assert len(scorecard_updates) == 0
+
+    async def test_empty_rules_list_works(self, tmp_path: Path) -> None:
+        """Empty rules list works without errors."""
+        bp_data = _sample_blueprint_yaml()
+        _write_yaml(tmp_path / "blueprints" / "service.yaml", bp_data)
+
+        sc_local = _sample_scorecard_yaml()
+        sc_local["rules"] = []
+        _write_yaml(tmp_path / "scorecards" / "production-readiness.yaml", sc_local)
+
+        sc_remote = _sample_scorecard_api()
+        sc_remote["rules"] = []
+
+        client = _make_mock_client(
+            blueprints=[_sample_blueprint_api()],
+            scorecards={"service": [sc_remote]},
+        )
+
+        result = await plan_org(client, tmp_path)
+
+        scorecard_updates = [c for c in result.updates if c.resource_type == "scorecard"]
+        assert len(scorecard_updates) == 0
