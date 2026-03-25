@@ -207,20 +207,27 @@ class TestInitProject:
 
     @pytest.mark.asyncio()
     async def test_init_project_refuses_existing_config(self, tmp_path: Path) -> None:
-        """Raises ConfigError if config file already exists."""
+        """Re-init adds new org to existing config without erroring."""
         config_dir = tmp_path / "config"
         config_dir.mkdir(parents=True)
-        (config_dir / "config.yaml").write_text("existing: true")
+        (config_dir / "config.yaml").write_text(
+            "default_org: old-org\norgs:\n  old-org:\n    name: old-org\n"
+        )
 
         options = InitOptions(
-            org_name="my-org",
+            org_name="new-org",
             mode="fresh",
             project_dir=tmp_path,
             config_dir=config_dir,
         )
 
-        with pytest.raises(ConfigError, match="already exists"):
-            await init_project(options)
+        result = await init_project(options)
+        import yaml
+
+        config_data = yaml.safe_load(result.config_path.read_text())
+        assert "old-org" in config_data["orgs"]
+        assert "new-org" in config_data["orgs"]
+        assert config_data["default_org"] == "old-org"
 
     @pytest.mark.asyncio()
     async def test_init_project_no_ci(self, tmp_path: Path) -> None:

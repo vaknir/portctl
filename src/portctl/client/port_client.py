@@ -176,6 +176,8 @@ class PortClient:
     async def upsert_blueprint(self, data: dict[str, Any]) -> dict[str, Any]:
         """Create or update a blueprint.
 
+        Tries POST (create) first, falls back to PUT (update) on 409 conflict.
+
         Args:
             data: Blueprint data including 'identifier'.
 
@@ -183,9 +185,15 @@ class PortClient:
             The upserted blueprint dictionary.
         """
         identifier = data["identifier"]
-        path = BLUEPRINT_BY_ID.format(identifier=identifier)
-        response = await self._request("PUT", path, json=data)
-        return response.get("blueprint", {})  # type: ignore[no-any-return]
+        try:
+            response = await self._request("POST", BLUEPRINTS, json=data)
+            return response.get("blueprint", {})  # type: ignore[no-any-return]
+        except PortAPIError as exc:
+            if exc.status_code == 409:
+                path = BLUEPRINT_BY_ID.format(identifier=identifier)
+                response = await self._request("PUT", path, json=data)
+                return response.get("blueprint", {})  # type: ignore[no-any-return]
+            raise
 
     async def delete_blueprint(self, identifier: str) -> None:
         """Delete a blueprint by identifier.
@@ -216,6 +224,8 @@ class PortClient:
     ) -> dict[str, Any]:
         """Create or update a scorecard.
 
+        Tries POST (create) first, falls back to PUT (update) on 409 conflict.
+
         Args:
             blueprint_id: Blueprint identifier.
             data: Scorecard data including 'identifier'.
@@ -224,9 +234,18 @@ class PortClient:
             The upserted scorecard dictionary.
         """
         identifier = data["identifier"]
-        path = SCORECARD_BY_ID.format(blueprint_id=blueprint_id, identifier=identifier)
-        response = await self._request("PUT", path, json=data)
-        return response.get("scorecard", {})  # type: ignore[no-any-return]
+        scorecards_path = SCORECARDS.format(blueprint_id=blueprint_id)
+        try:
+            response = await self._request("POST", scorecards_path, json=data)
+            return response.get("scorecard", {})  # type: ignore[no-any-return]
+        except PortAPIError as exc:
+            if exc.status_code == 409:
+                path = SCORECARD_BY_ID.format(
+                    blueprint_id=blueprint_id, identifier=identifier
+                )
+                response = await self._request("PUT", path, json=data)
+                return response.get("scorecard", {})  # type: ignore[no-any-return]
+            raise
 
     async def delete_scorecard(self, blueprint_id: str, identifier: str) -> None:
         """Delete a scorecard.
@@ -284,6 +303,8 @@ class PortClient:
     ) -> dict[str, Any]:
         """Create or update an entity.
 
+        Uses POST with upsert=true to handle both create and update.
+
         Args:
             blueprint_id: Blueprint identifier the entity belongs to.
             data: Entity data including 'identifier'.
@@ -291,9 +312,10 @@ class PortClient:
         Returns:
             The upserted entity dictionary.
         """
-        identifier = data["identifier"]
-        path = ENTITY_BY_ID.format(blueprint_id=blueprint_id, identifier=identifier)
-        response = await self._request("PUT", path, json=data)
+        path = ENTITIES.format(blueprint_id=blueprint_id)
+        response = await self._request(
+            "POST", path, json=data, params={"upsert": "true"}
+        )
         return response.get("entity", {})  # type: ignore[no-any-return]
 
     async def delete_entity(self, blueprint_id: str, identifier: str) -> None:

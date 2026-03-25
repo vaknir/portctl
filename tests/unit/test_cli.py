@@ -16,7 +16,7 @@ EXPECTED_COMMAND_GROUPS = [
     "auth",
     "org",
     "export",
-    "plan",
+    "diff",
     "apply",
     "validate",
     "blueprint",

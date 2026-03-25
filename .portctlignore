@@ -1,0 +1,8 @@
+# Default portctl ignore rules
+# Resources matching these patterns are excluded from export, plan, and apply
+
+# Port internal blueprints
+blueprints/_*
+
+# Port system blueprints
+blueprints/$*

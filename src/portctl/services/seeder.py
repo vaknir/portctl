@@ -210,8 +210,139 @@ SCORECARD_PRODUCTION_READINESS: dict[str, Any] = {
     ],
 }
 
+SCORECARD_SECURITY: dict[str, Any] = {
+    "identifier": "security",
+    "title": "Security",
+    "rules": [
+        {
+            "identifier": "has-on-call-contact",
+            "title": "Has On-call Contact",
+            "level": "Bronze",
+            "query": {
+                "combinator": "and",
+                "conditions": [
+                    {
+                        "operator": "isNotEmpty",
+                        "property": "on_call",
+                    }
+                ],
+            },
+        },
+        {
+            "identifier": "not-internal-tier",
+            "title": "Not Internal Tier",
+            "level": "Silver",
+            "query": {
+                "combinator": "and",
+                "conditions": [
+                    {
+                        "operator": "!=",
+                        "property": "tier",
+                        "value": "internal",
+                    }
+                ],
+            },
+        },
+        {
+            "identifier": "has-service-description",
+            "title": "Has Service Description",
+            "level": "Silver",
+            "query": {
+                "combinator": "and",
+                "conditions": [
+                    {
+                        "operator": "isNotEmpty",
+                        "property": "description",
+                    }
+                ],
+            },
+        },
+        {
+            "identifier": "is-critical-tier",
+            "title": "Is Critical Tier",
+            "level": "Gold",
+            "query": {
+                "combinator": "and",
+                "conditions": [
+                    {
+                        "operator": "=",
+                        "property": "tier",
+                        "value": "critical",
+                    }
+                ],
+            },
+        },
+    ],
+}
+
+SCORECARD_CODE_QUALITY: dict[str, Any] = {
+    "identifier": "code-quality",
+    "title": "Code Quality",
+    "rules": [
+        {
+            "identifier": "has-repository",
+            "title": "Has Repository",
+            "level": "Bronze",
+            "query": {
+                "combinator": "and",
+                "conditions": [
+                    {
+                        "operator": "isNotEmpty",
+                        "property": "repository",
+                    }
+                ],
+            },
+        },
+        {
+            "identifier": "has-service-docs",
+            "title": "Has Service Documentation",
+            "level": "Bronze",
+            "query": {
+                "combinator": "and",
+                "conditions": [
+                    {
+                        "operator": "isNotEmpty",
+                        "property": "description",
+                    }
+                ],
+            },
+        },
+        {
+            "identifier": "has-oncall-owner",
+            "title": "Has On-call Owner",
+            "level": "Silver",
+            "query": {
+                "combinator": "and",
+                "conditions": [
+                    {
+                        "operator": "isNotEmpty",
+                        "property": "on_call",
+                    }
+                ],
+            },
+        },
+        {
+            "identifier": "is-production-grade",
+            "title": "Is Production Grade",
+            "level": "Gold",
+            "query": {
+                "combinator": "and",
+                "conditions": [
+                    {
+                        "operator": "!=",
+                        "property": "tier",
+                        "value": "internal",
+                    }
+                ],
+            },
+        },
+    ],
+}
+
 SCORECARDS: list[tuple[str, dict[str, Any]]] = [
     ("microservice", SCORECARD_PRODUCTION_READINESS),
+    ("microservice", SCORECARD_SECURITY),
+    ("microservice", SCORECARD_CODE_QUALITY),
 ]
 
 # ── Entity definitions ───────────────────────────────────────────────

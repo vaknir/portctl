@@ -18,6 +18,7 @@ from portctl.services.seeder import (
     JIRA_PROJECTS,
     JIRA_USERS,
     MICROSERVICES,
+    SCORECARDS,
     SERVICES,
     TEAMS,
     WORKLOADS,
@@ -40,7 +41,7 @@ _TOTAL_ENTITIES = (
 )
 
 # Total resources: blueprints + scorecards + entities
-_TOTAL_RESOURCES = len(BLUEPRINTS) + 1 + _TOTAL_ENTITIES
+_TOTAL_RESOURCES = len(BLUEPRINTS) + len(SCORECARDS) + _TOTAL_ENTITIES
 
 
 def _mock_client() -> AsyncMock:
@@ -68,14 +69,17 @@ class TestSeedDemoData:
         assert bp_ids == ["environment", "team", "microservice", "deployment"]
 
     async def test_creates_scorecards(self) -> None:
-        """Production readiness scorecard is created on microservice."""
+        """All scorecards are created on microservice."""
         client = _mock_client()
         await seed_demo_data(client)
 
-        assert client.upsert_scorecard.call_count == 1
-        sc_call = client.upsert_scorecard.call_args_list[0]
-        assert sc_call.args[0] == "microservice"
-        assert sc_call.args[1]["identifier"] == "production-readiness"
+        assert client.upsert_scorecard.call_count == 3
+        identifiers = [c.args[1]["identifier"] for c in client.upsert_scorecard.call_args_list]
+        assert "production-readiness" in identifiers
+        assert "security" in identifiers
+        assert "code-quality" in identifiers
+        for call in client.upsert_scorecard.call_args_list:
+            assert call.args[0] == "microservice"
 
     async def test_creates_entities_in_dependency_order(self) -> None:
         """Entities are created in dependency order."""
@@ -108,7 +112,7 @@ class TestSeedDemoData:
         result = await seed_demo_data(client)
 
         assert result.blueprints_created == 4
-        assert result.scorecards_created == 1
+        assert result.scorecards_created == 3
         assert result.entities_created == _TOTAL_ENTITIES
         assert result.entity_breakdown["teams"] == 3
         assert result.entity_breakdown["environments"] == 3
@@ -136,8 +140,8 @@ class TestSeedDemoData:
 
         await seed_demo_data(client, on_progress=on_progress)
 
-        # 4 blueprints + 1 scorecard + entities = total progress calls
-        expected = len(BLUEPRINTS) + 1 + _TOTAL_ENTITIES
+        # 4 blueprints + 3 scorecards + entities = total progress calls
+        expected = len(BLUEPRINTS) + len(SCORECARDS) + _TOTAL_ENTITIES
         assert len(progress_calls) == expected
         assert progress_calls[0] == ("blueprints", "environment", "")
         assert progress_calls[4] == ("scorecards", "production-readiness", "")
@@ -198,8 +202,8 @@ class TestCleanupDemoData:
 
         deleted = await cleanup_demo_data(client)
 
-        # Only scorecards (1) and blueprints (4) count as deleted
-        assert deleted == 5
+        # Only scorecards (3) and blueprints (4) count as deleted
+        assert deleted == len(SCORECARDS) + len(BLUEPRINTS)
 
     async def test_skips_404_on_blueprint(self) -> None:
         """Already-deleted blueprints (404) are silently skipped."""
@@ -210,8 +214,8 @@ class TestCleanupDemoData:
 
         deleted = await cleanup_demo_data(client)
 
-        # entities + 1 scorecard, 0 blueprints
-        assert deleted == _TOTAL_ENTITIES + 1
+        # entities + scorecards, 0 blueprints
+        assert deleted == _TOTAL_ENTITIES + len(SCORECARDS)
 
     async def test_reraises_non_404_errors(self) -> None:
         """Non-404 API errors are propagated."""

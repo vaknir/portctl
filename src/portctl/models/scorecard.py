@@ -10,7 +10,7 @@ from pydantic import BaseModel, Field
 class ScorecardLevel(BaseModel):
     """Schema for a scorecard level (e.g. Bronze, Silver, Gold)."""
 
-    identifier: str = Field(description="Unique level identifier")
+    identifier: str = Field(default="", description="Unique level identifier")
     title: str = Field(description="Display title")
     color: str = Field(description="Color for the level indicator")
 
