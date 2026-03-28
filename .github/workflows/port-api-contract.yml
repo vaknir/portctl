@@ -1,0 +1,55 @@
+name: Port API Contract Tests
+
+# Detect breaking changes in the Port.io API by running CRUD lifecycle tests
+# against the live API. Runs nightly and on PRs that touch the client layer.
+
+on:
+  schedule:
+    # Every day at 06:00 UTC
+    - cron: "0 6 * * *"
+  pull_request:
+    branches: [main]
+    paths:
+      - "src/portctl/client/**"
+      - "tests/integration/**"
+  workflow_dispatch: # Allow manual triggers
+
+concurrency:
+  group: port-api-contract-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  api-contract:
+    name: Port API Contract
+    runs-on: ubuntu-latest
+    # Only run when secrets are available (skipped on forks)
+    if: ${{ github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || github.event.pull_request.head.repo.full_name == github.repository }}
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - uses: astral-sh/setup-uv@v6
+
+      - name: Cache dependencies
+        uses: actions/cache@v5
+        with:
+          path: ~/.cache/uv
+          key: uv-${{ runner.os }}-${{ hashFiles('uv.lock') }}
+          restore-keys: uv-${{ runner.os }}-
+
+      - name: Install dependencies
+        run: uv sync --all-extras --dev
+
+      - name: Run Port API contract tests
+        env:
+          PORT_CLIENT_ID: ${{ secrets.PORT_CLIENT_ID }}
+          PORT_CLIENT_SECRET: ${{ secrets.PORT_CLIENT_SECRET }}
+        run: |
+          uv run pytest tests/integration/test_port_api_contract.py \
+            -v --tb=long -x \
+            -m integration \
+            --timeout=120
