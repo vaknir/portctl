@@ -1,0 +1,80 @@
+identifier: deploymentEntity
+title: Deployment
+type: entity
+icon: Deployment
+widgets:
+- id: H7hbkybPszgf6t9S
+  type: grouper
+  displayMode: tabs
+  activeGroupUrlParam: activeTab
+  groupsOrder:
+  - Overview
+  - Related Entities
+  - Runs
+  - Audit Log
+  - Scorecards
+  - Dashboard
+  groups:
+  - title: Overview
+    widgets:
+    - id: 3L2zWFeuoDZUwGOm
+      type: dashboard-widget
+      layout:
+      - height: 400
+        columns:
+        - id: rBttDQd1SFDrS5iA
+          size: 12
+      widgets:
+      - id: rBttDQd1SFDrS5iA
+        type: entity-info
+        title: Details
+        blueprint: '{{blueprint}}'
+        entity: '{{url.identifier}}'
+  - title: Related Entities
+    widgets:
+    - id: oN38t4FB6vSQzZio
+      type: grouper
+      title: Related Entities
+      displayMode: switch
+      groups:
+      - title: Table
+        icon: Table
+        widgets:
+        - id: ddGRwCpv5Q4w0umv
+          type: table-entities-explorer-by-direction
+      - title: Graph
+        icon: Relation
+        widgets:
+        - id: 6MsimBPqHwjR6JmV
+          type: graph-entities-explorer
+          hiddenBlueprints: []
+          dataset:
+            combinator: or
+            rules:
+            - operator: relatedTo
+              value: '{{url.identifier}}'
+              blueprint: '{{blueprint}}'
+            - combinator: and
+              rules:
+              - operator: '='
+                value: '{{url.identifier}}'
+                property: $identifier
+              - operator: '='
+                value: '{{blueprint}}'
+                property: $blueprint
+  - title: Runs
+    widgets:
+    - title: Run Log
+      id: WbwNDYnQbHZJgiuF
+      type: runs-table
+      query:
+        entity: '{{url.identifier}}'
+        blueprint: '{{blueprint}}'
+  - title: Audit Log
+    widgets:
+    - id: 0ZIuH7sDd9THaHy0
+      type: table-audit-log
+      query:
+        entity: '{{url.identifier}}'
+        blueprint: '{{blueprint}}'
+locked: false

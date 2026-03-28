@@ -1,0 +1,19 @@
+identifier: githubUsers
+title: Github Users
+type: blueprint-entities
+icon: Github
+widgets:
+- id: githubUser-explorer
+  type: table-entities-explorer
+  blueprint: githubUser
+  dataset:
+    combinator: and
+    rules: []
+  blueprintConfig:
+    githubUser:
+      groupSettings:
+        groupBy: []
+      propertiesSettings:
+        order: []
+locked: false
+parent: catalog_tables

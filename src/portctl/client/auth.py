@@ -47,9 +47,7 @@ class TokenManager:
         """Check if the current token is expired or missing."""
         if self._token is None:
             return True
-        return datetime.now(tz=UTC) >= (
-            self._token.expires_at - self._EXPIRY_MARGIN
-        )
+        return datetime.now(tz=UTC) >= (self._token.expires_at - self._EXPIRY_MARGIN)
 
     async def get_token(self) -> str:
         """Get a valid token, refreshing if expired.

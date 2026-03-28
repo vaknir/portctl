@@ -1,0 +1,79 @@
+identifier: create_an_issue
+title: Create an issue
+blueprint: ''
+trigger:
+  type: self-service
+  operation: CREATE
+  userInputs:
+    properties:
+      issue_type:
+        icon: DefaultProperty
+        title: Issue type
+        type: string
+        enum:
+        - Bug
+        - Story
+        - Epic
+        enumColors:
+          Bug: red
+          Story: green
+          Epic: purple
+      title:
+        icon: DefaultProperty
+        type: string
+        title: Title
+      description:
+        title: Description
+        icon: DefaultProperty
+        type: string
+        format: markdown
+      assignee:
+        title: Assignee
+        icon: DefaultProperty
+        type: string
+        blueprint: _user
+        format: entity
+        dataset:
+          combinator: and
+          rules:
+          - property: jira_user_id
+            operator: isNotEmpty
+      project:
+        title: Project
+        icon: DefaultProperty
+        type: string
+        blueprint: jiraProject
+        format: entity
+    required:
+    - project
+    - issue_type
+    - title
+    order:
+    - project
+    - issue_type
+    - title
+    - description
+    - assignee
+  blueprintIdentifier: jiraIssue
+invocation_method:
+  type: WEBHOOK
+  url: 'PLACEHOLDER: jira_create_issue_url'
+  agent: false
+  synchronized: true
+  method: POST
+  headers:
+    Authorization: 'PLACEHOLDER: jira_auth_header'
+    Content-Type: application/json
+  body:
+    fields:
+      project:
+        key: '{{.inputs.project.identifier}}'
+      assignee:
+        id: '{{.inputs.assignee.relations.jira_user}}'
+      summary: '{{.inputs.title}}'
+      description: '{{.inputs.description}}'
+      issuetype:
+        name: '{{.inputs.issue_type}}'
+user_properties: {}
+description: Create a new issue in a Jira project
+required_approval: false

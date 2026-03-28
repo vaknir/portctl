@@ -1,0 +1,21 @@
+identifier: workloads
+title: Workloads
+type: blueprint-entities
+icon: Deployment
+description: Register workloads manually by clicking " + Workload ", or set up [automatic 
+  discovery](/set_up_automatic_discovery)
+widgets:
+- id: workload-explorer
+  type: table-entities-explorer
+  blueprint: workload
+  dataset:
+    combinator: and
+    rules: []
+  blueprintConfig:
+    workload:
+      groupSettings:
+        groupBy: []
+      propertiesSettings:
+        order: []
+locked: false
+parent: manage_service_catalog

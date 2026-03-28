@@ -8,7 +8,6 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 import yaml
 
-from portctl.exceptions import ConfigError
 from portctl.services.initializer import (
     InitOptions,
     InitResult,

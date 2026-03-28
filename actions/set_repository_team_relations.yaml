@@ -1,0 +1,34 @@
+identifier: set_repository_team_relations
+title: Set GitHub Repository Team relations
+blueprint: ''
+trigger:
+  type: automation
+  event:
+    type: ANY_ENTITY_CHANGE
+    blueprintIdentifier: _team
+  condition:
+    type: JQ
+    expressions:
+    - .diff.before.relations.git_hub_team != .diff.after.relations.git_hub_team
+    - .diff.after.relations.git_hub_team != null
+    combinator: and
+invocation_method:
+  type: WEBHOOK
+  url: https://api.getport.io/v1/migrations
+  agent: false
+  synchronized: true
+  method: POST
+  headers:
+    RUN_ID: '{{ .run.id }}'
+    Content-Type: application/json
+  body:
+    sourceBlueprint: githubRepository
+    mapping:
+      blueprint: githubRepository
+      filter: '"{{ .event.diff.after.relations.git_hub_team }}" as $item | .relations.githubTeams | any(. == $item)'
+      entity:
+        identifier: .identifier
+        team: .team + ["{{ .event.context.entityIdentifier }}"] | unique
+user_properties: {}
+description: Set relations between Repositories and Teams based on the Git Team
+required_approval: false

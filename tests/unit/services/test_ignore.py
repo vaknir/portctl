@@ -93,24 +93,18 @@ class TestIgnoreFilterIsIgnored:
 
     def test_is_ignored_basic_match(self) -> None:
         """Glob pattern matches expected identifiers."""
-        ignore = IgnoreFilter(
-            rules=[IgnoreRule(pattern="_ocean_*", resource_type="blueprints")]
-        )
+        ignore = IgnoreFilter(rules=[IgnoreRule(pattern="_ocean_*", resource_type="blueprints")])
         assert ignore.is_ignored("blueprints", "_ocean_kafka") is True
         assert ignore.is_ignored("blueprints", "_ocean_pagerduty") is True
 
     def test_is_ignored_no_match(self) -> None:
         """Non-matching pattern returns False."""
-        ignore = IgnoreFilter(
-            rules=[IgnoreRule(pattern="_ocean_*", resource_type="blueprints")]
-        )
+        ignore = IgnoreFilter(rules=[IgnoreRule(pattern="_ocean_*", resource_type="blueprints")])
         assert ignore.is_ignored("blueprints", "service") is False
 
     def test_is_ignored_type_mismatch(self) -> None:
         """Pattern with resource_type does not match other types."""
-        ignore = IgnoreFilter(
-            rules=[IgnoreRule(pattern="_ocean_*", resource_type="blueprints")]
-        )
+        ignore = IgnoreFilter(rules=[IgnoreRule(pattern="_ocean_*", resource_type="blueprints")])
         assert ignore.is_ignored("scorecards", "_ocean_kafka") is False
 
     def test_is_ignored_negation_overrides(self) -> None:
@@ -118,9 +112,7 @@ class TestIgnoreFilterIsIgnored:
         ignore = IgnoreFilter(
             rules=[
                 IgnoreRule(pattern="_ocean_*", resource_type="blueprints"),
-                IgnoreRule(
-                    pattern="_ocean_kafka", resource_type="blueprints", negated=True
-                ),
+                IgnoreRule(pattern="_ocean_kafka", resource_type="blueprints", negated=True),
             ]
         )
         assert ignore.is_ignored("blueprints", "_ocean_kafka") is False
@@ -131,9 +123,7 @@ class TestIgnoreFilterIsIgnored:
         ignore = IgnoreFilter(
             rules=[
                 IgnoreRule(pattern="_ocean_*", resource_type="blueprints"),
-                IgnoreRule(
-                    pattern="_ocean_kafka", resource_type="blueprints", negated=True
-                ),
+                IgnoreRule(pattern="_ocean_kafka", resource_type="blueprints", negated=True),
                 # Re-ignore kafka specifically
                 IgnoreRule(pattern="_ocean_kafka", resource_type="blueprints"),
             ]
@@ -142,9 +132,7 @@ class TestIgnoreFilterIsIgnored:
 
     def test_is_ignored_unslashed_matches_any_type(self) -> None:
         """Pattern without resource_type matches across all types."""
-        ignore = IgnoreFilter(
-            rules=[IgnoreRule(pattern="_internal_*", resource_type=None)]
-        )
+        ignore = IgnoreFilter(rules=[IgnoreRule(pattern="_internal_*", resource_type=None)])
         assert ignore.is_ignored("blueprints", "_internal_system") is True
         assert ignore.is_ignored("scorecards", "_internal_metrics") is True
         assert ignore.is_ignored("actions", "_internal_hook") is True
@@ -156,17 +144,13 @@ class TestIgnoreFilterIsIgnored:
 
     def test_is_ignored_question_mark_glob(self) -> None:
         """? glob matches single character."""
-        ignore = IgnoreFilter(
-            rules=[IgnoreRule(pattern="svc-?", resource_type="blueprints")]
-        )
+        ignore = IgnoreFilter(rules=[IgnoreRule(pattern="svc-?", resource_type="blueprints")])
         assert ignore.is_ignored("blueprints", "svc-a") is True
         assert ignore.is_ignored("blueprints", "svc-ab") is False
 
     def test_is_ignored_bracket_glob(self) -> None:
         """[seq] glob matches character set."""
-        ignore = IgnoreFilter(
-            rules=[IgnoreRule(pattern="env-[123]", resource_type="blueprints")]
-        )
+        ignore = IgnoreFilter(rules=[IgnoreRule(pattern="env-[123]", resource_type="blueprints")])
         assert ignore.is_ignored("blueprints", "env-1") is True
         assert ignore.is_ignored("blueprints", "env-4") is False
 
@@ -176,25 +160,19 @@ class TestIgnoreFilterFilterIdentifiers:
 
     def test_filter_identifiers(self) -> None:
         """Returns only non-ignored identifiers."""
-        ignore = IgnoreFilter(
-            rules=[IgnoreRule(pattern="_ocean_*", resource_type="blueprints")]
-        )
+        ignore = IgnoreFilter(rules=[IgnoreRule(pattern="_ocean_*", resource_type="blueprints")])
         identifiers = ["service", "_ocean_kafka", "environment", "_ocean_pagerduty"]
         result = ignore.filter_identifiers("blueprints", identifiers)
         assert result == ["service", "environment"]
 
     def test_filter_identifiers_empty_input(self) -> None:
         """Empty input returns empty list."""
-        ignore = IgnoreFilter(
-            rules=[IgnoreRule(pattern="_*", resource_type="blueprints")]
-        )
+        ignore = IgnoreFilter(rules=[IgnoreRule(pattern="_*", resource_type="blueprints")])
         assert ignore.filter_identifiers("blueprints", []) == []
 
     def test_filter_identifiers_nothing_ignored(self) -> None:
         """When nothing matches, all identifiers are returned."""
-        ignore = IgnoreFilter(
-            rules=[IgnoreRule(pattern="_ocean_*", resource_type="blueprints")]
-        )
+        ignore = IgnoreFilter(rules=[IgnoreRule(pattern="_ocean_*", resource_type="blueprints")])
         identifiers = ["service", "environment"]
         assert ignore.filter_identifiers("blueprints", identifiers) == identifiers
 

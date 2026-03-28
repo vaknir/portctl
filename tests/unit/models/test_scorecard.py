@@ -92,9 +92,7 @@ class TestScorecardRule:
             identifier="has-readme",
             title="Has README",
             level="bronze",
-            query=Query(
-                conditions=[QueryCondition(property="readme", operator="isNotEmpty")]
-            ),
+            query=Query(conditions=[QueryCondition(property="readme", operator="isNotEmpty")]),
         )
         assert rule.identifier == "has-readme"
         assert rule.level == "bronze"

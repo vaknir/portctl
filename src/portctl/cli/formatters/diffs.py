@@ -12,6 +12,7 @@ from rich.text import Text
 if TYPE_CHECKING:
     from rich.console import Console
 
+    from portctl.services.differ import CrossOrgDiffResult
     from portctl.services.planner import PlanResult, ResourceChange
 
 # Mapping of action to border style and symbol
@@ -165,10 +166,12 @@ def _build_dict_sub_diff(
             if old[key] != new[key]:
                 old_repr = _format_value(old[key])
                 new_repr = _format_value(new[key])
-                lines.append((
-                    f"    ~ {key}: {old_repr} → {new_repr}",
-                    "yellow",
-                ))
+                lines.append(
+                    (
+                        f"    ~ {key}: {old_repr} → {new_repr}",
+                        "yellow",
+                    )
+                )
                 has_field_changes = True
         elif in_old and not in_new:
             lines.append((f"    - {key}", "red"))
@@ -370,7 +373,7 @@ def format_plan(plan: PlanResult, console: Console) -> None:
         grouped.setdefault(change.resource_type, []).append(change)
 
     # Render grouped panels
-    for resource_type in ("blueprint", "scorecard"):
+    for resource_type in ("blueprint", "scorecard", "action", "page"):
         changes = grouped.get(resource_type, [])
         if not changes:
             continue
@@ -390,19 +393,20 @@ def format_plan(plan: PlanResult, console: Console) -> None:
             body.append("  ", style="default")
             body.append("WARNING", style="bold red")
             body.append(
-                f" BREAKING -- will delete {len(deletes)}"
-                f" {resource_type}(s) from remote:\n",
+                f" BREAKING -- will delete {len(deletes)} {resource_type}(s) from remote:\n",
                 style="red",
             )
             for d in deletes:
                 body.append(f"    - {d.identifier}\n", style="red")
-            console.print(Panel(
-                body,
-                title=f"- {len(deletes)} deletions",
-                title_align="left",
-                border_style="red",
-                padding=(0, 1),
-            ))
+            console.print(
+                Panel(
+                    body,
+                    title=f"- {len(deletes)} deletions",
+                    title_align="left",
+                    border_style="red",
+                    padding=(0, 1),
+                )
+            )
         elif len(deletes) == 1:
             console.print(_render_change_panel(deletes[0]))
 
@@ -411,20 +415,22 @@ def format_plan(plan: PlanResult, console: Console) -> None:
     for rtype, total in [
         ("blueprint", plan.total_local_blueprints),
         ("scorecard", plan.total_local_scorecards),
+        ("action", plan.total_local_actions),
+        ("page", plan.total_local_pages),
     ]:
         type_changes = [c for c in plan.changes if c.resource_type == rtype]
         unchanged = max(0, total - len(type_changes))
-        creates = sum(1 for c in type_changes if c.action == "create")
-        updates = sum(1 for c in type_changes if c.action == "update")
-        deletes = sum(1 for c in type_changes if c.action == "delete")
+        create_n = sum(1 for c in type_changes if c.action == "create")
+        update_n = sum(1 for c in type_changes if c.action == "update")
+        delete_n = sum(1 for c in type_changes if c.action == "delete")
 
         parts: list[str] = []
-        if creates:
-            parts.append(f"[green]{creates} to create[/green]")
-        if updates:
-            parts.append(f"[yellow]{updates} to update[/yellow]")
-        if deletes:
-            parts.append(f"[red]{deletes} to delete[/red]")
+        if create_n:
+            parts.append(f"[green]{create_n} to create[/green]")
+        if update_n:
+            parts.append(f"[yellow]{update_n} to update[/yellow]")
+        if delete_n:
+            parts.append(f"[red]{delete_n} to delete[/red]")
         if unchanged > 0:
             parts.append(f"[dim]{unchanged} unchanged[/dim]")
         if parts:
@@ -485,5 +491,120 @@ def format_plan_json(plan: PlanResult, console: Console) -> None:
             }
             for issue in plan.validation_result.issues
         ]
+
+    console.print_json(json.dumps(output))
+
+
+def format_cross_org_diff(
+    result: CrossOrgDiffResult,
+    source_org: str,
+    target_org: str,
+    console: Console,
+) -> None:
+    """Print cross-org diff output using Rich panels grouped by resource type.
+
+    Changes are described from the source org's perspective:
+    - ``create`` -- resource exists only in source.
+    - ``delete`` -- resource exists only in target.
+    - ``update`` -- resource differs between orgs.
+
+    Args:
+        result: The CrossOrgDiffResult to format.
+        source_org: Source organization alias for display.
+        target_org: Target organization alias for display.
+        console: Rich Console instance for output.
+    """
+    if not result.has_changes:
+        console.print(f"[green]No differences between {source_org} and {target_org}.[/green]")
+        return
+
+    console.print(
+        f"\n[bold]Cross-org diff:[/bold] [blue]{source_org}[/blue]"
+        f" [dim]vs[/dim] [blue]{target_org}[/blue]\n"
+    )
+
+    # Group changes by resource type
+    grouped: dict[str, list[ResourceChange]] = {}
+    for change in result.changes:
+        grouped.setdefault(change.resource_type, []).append(change)
+
+    for resource_type in ("blueprint", "scorecard", "action", "page"):
+        changes = grouped.get(resource_type, [])
+        if not changes:
+            continue
+        console.print(f"[bold]{resource_type.capitalize()}s[/bold]")
+
+        deletes = [c for c in changes if c.action == "delete"]
+        others = [c for c in changes if c.action != "delete"]
+
+        for change in others:
+            console.print(_render_change_panel(change))
+
+        if len(deletes) > 1:
+            body = Text()
+            body.append("  ", style="default")
+            body.append("NOTE", style="bold yellow")
+            body.append(
+                f" -- {len(deletes)} {resource_type}(s) exist only in {target_org}:\n",
+                style="yellow",
+            )
+            for d in deletes:
+                body.append(f"    - {d.identifier}\n", style="red")
+            console.print(
+                Panel(
+                    body,
+                    title=f"- {len(deletes)} target-only",
+                    title_align="left",
+                    border_style="red",
+                    padding=(0, 1),
+                )
+            )
+        elif len(deletes) == 1:
+            console.print(_render_change_panel(deletes[0]))
+        console.print()
+
+    # Summary
+    summary = Text()
+    summary.append("Summary: ", style="bold")
+    summary.append(f"{len(result.only_in_source)} source-only (create)", style="green")
+    summary.append(", ", style="default")
+    summary.append(f"{len(result.modified)} modified (update)", style="yellow")
+    summary.append(", ", style="default")
+    summary.append(f"{len(result.only_in_target)} target-only (delete)", style="red")
+    console.print(summary)
+
+
+def format_cross_org_diff_json(
+    result: CrossOrgDiffResult,
+    source_org: str,
+    target_org: str,
+    console: Console,
+) -> None:
+    """Print cross-org diff output as JSON for machine consumption.
+
+    Args:
+        result: The CrossOrgDiffResult to format.
+        source_org: Source organization alias.
+        target_org: Target organization alias.
+        console: Rich Console instance for output.
+    """
+    output: dict[str, Any] = {
+        "source_org": source_org,
+        "target_org": target_org,
+        "has_changes": result.has_changes,
+        "change_count": result.change_count,
+        "breaking_count": result.breaking_count,
+        "changes": [
+            {
+                "resource_type": c.resource_type,
+                "identifier": c.identifier,
+                "action": c.action,
+                "diff": c.diff,
+                "breaking": c.breaking,
+                "parent_identifier": c.parent_identifier,
+            }
+            for c in result.changes
+        ],
+    }
 
     console.print_json(json.dumps(output))

@@ -1,0 +1,19 @@
+identifier: githubOrganizations
+title: Organizations
+type: blueprint-entities
+icon: Github
+widgets:
+- id: githubOrganization-explorer
+  type: table-entities-explorer
+  blueprint: githubOrganization
+  dataset:
+    combinator: and
+    rules: []
+  blueprintConfig:
+    githubOrganization:
+      groupSettings:
+        groupBy: []
+      propertiesSettings:
+        order: []
+locked: false
+parent: catalog_tables

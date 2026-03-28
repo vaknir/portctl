@@ -18,15 +18,18 @@ from portctl.services.exporter import export_all, export_blueprints, export_scor
 def _make_mock_client(
     blueprints: list[dict[str, Any]] | None = None,
     scorecards: dict[str, list[dict[str, Any]]] | None = None,
+    pages: list[dict[str, Any]] | None = None,
 ) -> MagicMock:
     """Create a mock PortClient with predefined responses.
 
     Args:
         blueprints: List of blueprint dicts to return from get_blueprints.
         scorecards: Mapping of blueprint_id -> list of scorecard dicts.
+        pages: List of page dicts to return from get_pages.
     """
     client = MagicMock()
     client.get_blueprints = AsyncMock(return_value=blueprints or [])
+    client.get_pages = AsyncMock(return_value=pages or [])
 
     _scorecards = scorecards or {}
 
@@ -34,6 +37,8 @@ def _make_mock_client(
         return _scorecards.get(blueprint_id, [])
 
     client.get_scorecards = AsyncMock(side_effect=_get_scorecards)
+
+    client.get_actions = AsyncMock(return_value=[])
     return client
 
 
@@ -265,10 +270,7 @@ class TestBlueprintModelFromApi:
                 mapped["required"] = True
             properties[name] = BlueprintProperty(**mapped)
 
-        relations = {
-            k: BlueprintRelation(**v)
-            for k, v in api_data.get("relations", {}).items()
-        }
+        relations = {k: BlueprintRelation(**v) for k, v in api_data.get("relations", {}).items()}
 
         bp = Blueprint(
             identifier=api_data["identifier"],

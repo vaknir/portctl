@@ -1,0 +1,21 @@
+identifier: services
+title: Services
+type: blueprint-entities
+icon: Microservice
+description: Register services manually by clicking " + Service ", or set up [automatic 
+  discovery](/set_up_automatic_discovery)
+widgets:
+- id: service-explorer
+  type: table-entities-explorer
+  blueprint: service
+  dataset:
+    combinator: and
+    rules: []
+  blueprintConfig:
+    service:
+      groupSettings:
+        groupBy: []
+      propertiesSettings:
+        order: []
+locked: false
+parent: manage_service_catalog

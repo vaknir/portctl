@@ -34,9 +34,7 @@ class BlueprintCalculationProperty(BaseModel):
     title: str | None = Field(default=None, description="Display title")
     calculation: str = Field(description="Calculation type (count, average, etc.)")
     type: str = Field(description="Result type")
-    colors: dict[str, str] | None = Field(
-        default=None, description="Color mapping for values"
-    )
+    colors: dict[str, str] | None = Field(default=None, description="Color mapping for values")
 
 
 class BlueprintRelation(BaseModel):

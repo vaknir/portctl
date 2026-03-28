@@ -41,9 +41,7 @@ def port_credentials() -> tuple[str, str]:
     """Return (client_id, client_secret) from env vars, or skip the test."""
     creds = _get_credentials()
     if creds is None:
-        pytest.skip(
-            "PORT_CLIENT_ID and PORT_CLIENT_SECRET must be set to run integration tests"
-        )
+        pytest.skip("PORT_CLIENT_ID and PORT_CLIENT_SECRET must be set to run integration tests")
     return creds
 
 

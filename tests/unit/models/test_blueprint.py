@@ -158,10 +158,7 @@ class TestBlueprint:
             icon=api_data.get("icon"),
             description=api_data.get("description"),
             properties=properties,
-            relations={
-                k: BlueprintRelation(**v)
-                for k, v in api_data.get("relations", {}).items()
-            },
+            relations={k: BlueprintRelation(**v) for k, v in api_data.get("relations", {}).items()},
         )
         assert bp.identifier == "service"
         assert bp.properties["version"].required is True

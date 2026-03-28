@@ -33,11 +33,21 @@ from portctl.services.seeder import (
 
 # Total entity count across all blueprint types
 _TOTAL_ENTITIES = (
-    len(GROUPS) + len(TEAMS) + len(ENVIRONMENTS) + len(GITHUB_ORGANIZATIONS)
-    + len(GITHUB_USERS) + len(JIRA_PROJECTS) + len(JIRA_USERS)
-    + len(GITHUB_TEAMS) + len(_generate_github_repositories())
-    + len(MICROSERVICES) + len(SERVICES) + len(_generate_github_pull_requests())
-    + len(_generate_jira_issues()) + len(_generate_deployments()) + len(WORKLOADS)
+    len(GROUPS)
+    + len(TEAMS)
+    + len(ENVIRONMENTS)
+    + len(GITHUB_ORGANIZATIONS)
+    + len(GITHUB_USERS)
+    + len(JIRA_PROJECTS)
+    + len(JIRA_USERS)
+    + len(GITHUB_TEAMS)
+    + len(_generate_github_repositories())
+    + len(MICROSERVICES)
+    + len(SERVICES)
+    + len(_generate_github_pull_requests())
+    + len(_generate_jira_issues())
+    + len(_generate_deployments())
+    + len(WORKLOADS)
 )
 
 # Total resources: blueprints + scorecards + entities
@@ -96,13 +106,21 @@ class TestSeedDemoData:
                 seen_order.append(bp_id)
 
         expected_order = [
-            "group", "team", "environment",
-            "githubOrganization", "githubUser",
-            "jiraProject", "jiraUser",
-            "githubTeam", "githubRepository",
-            "microservice", "service",
-            "githubPullRequest", "jiraIssue",
-            "deployment", "workload",
+            "group",
+            "team",
+            "environment",
+            "githubOrganization",
+            "githubUser",
+            "jiraProject",
+            "jiraUser",
+            "githubTeam",
+            "githubRepository",
+            "microservice",
+            "service",
+            "githubPullRequest",
+            "jiraIssue",
+            "deployment",
+            "workload",
         ]
         assert seen_order == expected_order
 
@@ -439,9 +457,7 @@ class TestDataIntegrity:
         user_ids = {u["identifier"] for u in JIRA_USERS}
         for issue in _generate_jira_issues():
             reporter = issue["relations"]["jira_user_reporter"]
-            assert reporter in user_ids, (
-                f"{issue['identifier']} references unknown user {reporter}"
-            )
+            assert reporter in user_ids, f"{issue['identifier']} references unknown user {reporter}"
 
     def test_services_reference_valid_repos(self) -> None:
         """All service entities reference defined GitHub repositories."""
@@ -468,11 +484,21 @@ class TestDataIntegrity:
     def test_entity_identifiers_unique_per_blueprint(self) -> None:
         """Entity identifiers are unique within each blueprint type."""
         entity_lists = [
-            TEAMS, ENVIRONMENTS, MICROSERVICES, _generate_deployments(),
-            GITHUB_ORGANIZATIONS, GITHUB_USERS, GITHUB_TEAMS,
-            _generate_github_repositories(), _generate_github_pull_requests(),
-            JIRA_PROJECTS, JIRA_USERS, _generate_jira_issues(),
-            SERVICES, WORKLOADS, GROUPS,
+            TEAMS,
+            ENVIRONMENTS,
+            MICROSERVICES,
+            _generate_deployments(),
+            GITHUB_ORGANIZATIONS,
+            GITHUB_USERS,
+            GITHUB_TEAMS,
+            _generate_github_repositories(),
+            _generate_github_pull_requests(),
+            JIRA_PROJECTS,
+            JIRA_USERS,
+            _generate_jira_issues(),
+            SERVICES,
+            WORKLOADS,
+            GROUPS,
         ]
         for entities in entity_lists:
             ids = [e["identifier"] for e in entities]

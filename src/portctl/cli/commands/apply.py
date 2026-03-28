@@ -48,9 +48,7 @@ def push_command(
     config = require_config()
     org_name = org or config.default_org
     if org_name is None:
-        console.print(
-            "[red]No default org set. Specify an org or set default_org in config.[/red]"
-        )
+        console.print("[red]No default org set. Specify an org or set default_org in config.[/red]")
         raise typer.Exit(code=1)
     console.print(f"[dim]Pushing to {org_name}...[/dim]")
     try:
@@ -109,9 +107,7 @@ async def _apply_run(
 
         # Step 4: Confirmation
         if plan.breaking_count > 0 and not yes:
-            console.print(
-                "[red bold]This plan includes breaking changes.[/red bold]"
-            )
+            console.print("[red bold]This plan includes breaking changes.[/red bold]")
             confirmation = typer.prompt("Type 'yes' to confirm")
             if confirmation != "yes":
                 console.print("[yellow]Push cancelled.[/yellow]")
@@ -123,9 +119,7 @@ async def _apply_run(
 
         # Step 5: Apply changes
         with console.status("[blue]Pushing...[/blue]"):
-            result = await apply_org(
-                client, plan, prune=prune, config_dir=Path.cwd()
-            )
+            result = await apply_org(client, plan, prune=prune, config_dir=Path.cwd())
 
     # Step 6: Print per-resource results
     for r in result.results:
@@ -142,13 +136,11 @@ async def _apply_run(
                 "deleted": "red",
             }.get(r.action, "white")
             console.print(
-                f"  [{color}]{symbol}[/{color}] {resource_label}: "
-                f"{r.identifier} ({r.action})"
+                f"  [{color}]{symbol}[/{color}] {resource_label}: {r.identifier} ({r.action})"
             )
         else:
             console.print(
-                f"  [red]x[/red] {resource_label}: "
-                f"{r.identifier} ({r.action}) -- {r.error}"
+                f"  [red]x[/red] {resource_label}: {r.identifier} ({r.action}) -- {r.error}"
             )
 
     # Step 7: Print summary
@@ -172,11 +164,7 @@ async def _apply_run(
 
     # Step 8: Record to state
     git_commit = _get_git_commit()
-    resources_changed = [
-        f"{r.resource_type}:{r.identifier}"
-        for r in result.results
-        if r.success
-    ]
+    resources_changed = [f"{r.resource_type}:{r.identifier}" for r in result.results if r.success]
     event = ApplyEvent(
         org=org,
         timestamp=datetime.now(UTC).isoformat(),

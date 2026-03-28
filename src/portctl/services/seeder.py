@@ -641,22 +641,70 @@ GITHUB_TEAMS: list[dict[str, Any]] = [
 
 _REPO_DEFINITIONS: list[tuple[str, str, str, str, str, list[str]]] = [
     # (identifier, title, description, language, defaultBranch, teams)
-    ("api-gateway-repo", "API Gateway", "Central API gateway with routing and rate limiting",
-     "Go", "main", ["core-platform"]),
-    ("auth-service-repo", "Auth Service", "Authentication and authorization microservice",
-     "Python", "main", ["backend-eng"]),
-    ("payment-service-repo", "Payment Service", "Payment processing and Stripe integration",
-     "Java", "main", ["backend-eng"]),
-    ("notification-service-repo", "Notification Service", "Multi-channel notification delivery",
-     "Python", "main", ["backend-eng"]),
-    ("user-service-repo", "User Service", "User profile and preferences management",
-     "TypeScript", "main", ["backend-eng", "frontend-eng"]),
-    ("search-service-repo", "Search Service", "Full-text search powered by Elasticsearch",
-     "Go", "main", ["core-platform"]),
-    ("analytics-service-repo", "Analytics Service", "Internal analytics and reporting pipeline",
-     "Python", "develop", ["backend-eng"]),
-    ("billing-service-repo", "Billing Service", "Subscription management and invoicing",
-     "Java", "main", ["backend-eng"]),
+    (
+        "api-gateway-repo",
+        "API Gateway",
+        "Central API gateway with routing and rate limiting",
+        "Go",
+        "main",
+        ["core-platform"],
+    ),
+    (
+        "auth-service-repo",
+        "Auth Service",
+        "Authentication and authorization microservice",
+        "Python",
+        "main",
+        ["backend-eng"],
+    ),
+    (
+        "payment-service-repo",
+        "Payment Service",
+        "Payment processing and Stripe integration",
+        "Java",
+        "main",
+        ["backend-eng"],
+    ),
+    (
+        "notification-service-repo",
+        "Notification Service",
+        "Multi-channel notification delivery",
+        "Python",
+        "main",
+        ["backend-eng"],
+    ),
+    (
+        "user-service-repo",
+        "User Service",
+        "User profile and preferences management",
+        "TypeScript",
+        "main",
+        ["backend-eng", "frontend-eng"],
+    ),
+    (
+        "search-service-repo",
+        "Search Service",
+        "Full-text search powered by Elasticsearch",
+        "Go",
+        "main",
+        ["core-platform"],
+    ),
+    (
+        "analytics-service-repo",
+        "Analytics Service",
+        "Internal analytics and reporting pipeline",
+        "Python",
+        "develop",
+        ["backend-eng"],
+    ),
+    (
+        "billing-service-repo",
+        "Billing Service",
+        "Subscription management and invoicing",
+        "Java",
+        "main",
+        ["backend-eng"],
+    ),
 ]
 
 _REPO_READMES: dict[str, str] = {
@@ -677,8 +725,7 @@ _REPO_READMES: dict[str, str] = {
         "Supports templating and delivery scheduling."
     ),
     "user-service-repo": (
-        "# User Service\nManages user profiles and preferences.\n"
-        "GraphQL and REST APIs available."
+        "# User Service\nManages user profiles and preferences.\nGraphQL and REST APIs available."
     ),
     "search-service-repo": (
         "# Search Service\nElasticsearch-backed search engine.\n"
@@ -737,18 +784,72 @@ def _generate_github_pull_requests() -> list[dict[str, Any]]:
     now = datetime.now(tz=UTC)
     raw: list[tuple[str, str, str, str, str, str, int, int, str]] = [
         # (id, title, status, repo, creator, branch, hours_ago, pr_num, lead_time)
-        ("pr-api-gw-142", "feat: add circuit breaker to upstream calls",
-         "merged", "api-gateway-repo", "sarah-chen", "feat/circuit-breaker", 4, 142, "6.2"),
-        ("pr-auth-89", "fix: refresh token rotation race condition",
-         "merged", "auth-service-repo", "jordan-lee", "fix/token-rotation", 8, 89, "3.5"),
-        ("pr-payment-67", "feat: add Apple Pay support",
-         "open", "payment-service-repo", "priya-patel", "feat/apple-pay", 2, 67, ""),
-        ("pr-user-201", "refactor: migrate to Prisma ORM",
-         "open", "user-service-repo", "marcus-johnson", "refactor/prisma-migration", 12, 201, ""),
-        ("pr-search-34", "fix: memory leak in query cache",
-         "merged", "search-service-repo", "alex-murphy", "fix/query-cache-leak", 24, 34, "1.8"),
-        ("pr-billing-55", "chore: upgrade Stripe SDK to v15",
-         "closed", "billing-service-repo", "priya-patel", "chore/stripe-v15", 48, 55, ""),
+        (
+            "pr-api-gw-142",
+            "feat: add circuit breaker to upstream calls",
+            "merged",
+            "api-gateway-repo",
+            "sarah-chen",
+            "feat/circuit-breaker",
+            4,
+            142,
+            "6.2",
+        ),
+        (
+            "pr-auth-89",
+            "fix: refresh token rotation race condition",
+            "merged",
+            "auth-service-repo",
+            "jordan-lee",
+            "fix/token-rotation",
+            8,
+            89,
+            "3.5",
+        ),
+        (
+            "pr-payment-67",
+            "feat: add Apple Pay support",
+            "open",
+            "payment-service-repo",
+            "priya-patel",
+            "feat/apple-pay",
+            2,
+            67,
+            "",
+        ),
+        (
+            "pr-user-201",
+            "refactor: migrate to Prisma ORM",
+            "open",
+            "user-service-repo",
+            "marcus-johnson",
+            "refactor/prisma-migration",
+            12,
+            201,
+            "",
+        ),
+        (
+            "pr-search-34",
+            "fix: memory leak in query cache",
+            "merged",
+            "search-service-repo",
+            "alex-murphy",
+            "fix/query-cache-leak",
+            24,
+            34,
+            "1.8",
+        ),
+        (
+            "pr-billing-55",
+            "chore: upgrade Stripe SDK to v15",
+            "closed",
+            "billing-service-repo",
+            "priya-patel",
+            "chore/stripe-v15",
+            48,
+            55,
+            "",
+        ),
     ]
 
     prs: list[dict[str, Any]] = []
@@ -860,35 +961,126 @@ def _generate_jira_issues() -> list[dict[str, Any]]:
     now = datetime.now(tz=UTC)
     raw: list[tuple[str, str, str, str, str, str, list[str], str, list[str], int, str]] = [
         # (id, title, status, type, project, reporter, components, priority, labels, days_ago, url)
-        ("PLAT-101", "Circuit breaker timeout tuning", "Done", "Story", "PLAT",
-         "jira-sarah-chen", ["api-gateway"], "High", ["reliability"], 3,
-         "https://acme-corp.atlassian.net/browse/PLAT-101"),
-        ("PLAT-102", "Elasticsearch cluster upgrade to 8.x", "In Progress", "Story", "PLAT",
-         "jira-sarah-chen", ["search-service"], "Medium", ["infrastructure", "upgrade"], 5,
-         "https://acme-corp.atlassian.net/browse/PLAT-102"),
-        ("PLAT-103", "API gateway memory spike under load", "To Do", "Bug", "PLAT",
-         "jira-jordan-lee", ["api-gateway"], "Critical", ["production", "performance"], 1,
-         "https://acme-corp.atlassian.net/browse/PLAT-103"),
-        ("BACK-201", "Add Apple Pay payment method", "In Progress", "Story", "BACK",
-         "jira-priya-patel", ["payment-service"], "High", ["payments", "feature"], 4,
-         "https://acme-corp.atlassian.net/browse/BACK-201"),
-        ("BACK-202", "Refresh token rotation race condition", "Done", "Bug", "BACK",
-         "jira-jordan-lee", ["auth-service"], "Critical", ["security", "auth"], 2,
-         "https://acme-corp.atlassian.net/browse/BACK-202"),
-        ("BACK-203", "Migrate user-service to Prisma ORM", "In Progress", "Task", "BACK",
-         "jira-marcus-johnson", ["user-service"], "Medium", ["tech-debt", "migration"], 7,
-         "https://acme-corp.atlassian.net/browse/BACK-203"),
-        ("BACK-204", "Notification delivery retry logic", "In Review", "Story", "BACK",
-         "jira-priya-patel", ["notification-service"], "Medium", ["reliability"], 6,
-         "https://acme-corp.atlassian.net/browse/BACK-204"),
-        ("BACK-205", "Stripe SDK v15 upgrade", "Done", "Task", "BACK",
-         "jira-marcus-johnson", ["billing-service"], "Low", ["dependencies", "upgrade"], 10,
-         "https://acme-corp.atlassian.net/browse/BACK-205"),
+        (
+            "PLAT-101",
+            "Circuit breaker timeout tuning",
+            "Done",
+            "Story",
+            "PLAT",
+            "jira-sarah-chen",
+            ["api-gateway"],
+            "High",
+            ["reliability"],
+            3,
+            "https://acme-corp.atlassian.net/browse/PLAT-101",
+        ),
+        (
+            "PLAT-102",
+            "Elasticsearch cluster upgrade to 8.x",
+            "In Progress",
+            "Story",
+            "PLAT",
+            "jira-sarah-chen",
+            ["search-service"],
+            "Medium",
+            ["infrastructure", "upgrade"],
+            5,
+            "https://acme-corp.atlassian.net/browse/PLAT-102",
+        ),
+        (
+            "PLAT-103",
+            "API gateway memory spike under load",
+            "To Do",
+            "Bug",
+            "PLAT",
+            "jira-jordan-lee",
+            ["api-gateway"],
+            "Critical",
+            ["production", "performance"],
+            1,
+            "https://acme-corp.atlassian.net/browse/PLAT-103",
+        ),
+        (
+            "BACK-201",
+            "Add Apple Pay payment method",
+            "In Progress",
+            "Story",
+            "BACK",
+            "jira-priya-patel",
+            ["payment-service"],
+            "High",
+            ["payments", "feature"],
+            4,
+            "https://acme-corp.atlassian.net/browse/BACK-201",
+        ),
+        (
+            "BACK-202",
+            "Refresh token rotation race condition",
+            "Done",
+            "Bug",
+            "BACK",
+            "jira-jordan-lee",
+            ["auth-service"],
+            "Critical",
+            ["security", "auth"],
+            2,
+            "https://acme-corp.atlassian.net/browse/BACK-202",
+        ),
+        (
+            "BACK-203",
+            "Migrate user-service to Prisma ORM",
+            "In Progress",
+            "Task",
+            "BACK",
+            "jira-marcus-johnson",
+            ["user-service"],
+            "Medium",
+            ["tech-debt", "migration"],
+            7,
+            "https://acme-corp.atlassian.net/browse/BACK-203",
+        ),
+        (
+            "BACK-204",
+            "Notification delivery retry logic",
+            "In Review",
+            "Story",
+            "BACK",
+            "jira-priya-patel",
+            ["notification-service"],
+            "Medium",
+            ["reliability"],
+            6,
+            "https://acme-corp.atlassian.net/browse/BACK-204",
+        ),
+        (
+            "BACK-205",
+            "Stripe SDK v15 upgrade",
+            "Done",
+            "Task",
+            "BACK",
+            "jira-marcus-johnson",
+            ["billing-service"],
+            "Low",
+            ["dependencies", "upgrade"],
+            10,
+            "https://acme-corp.atlassian.net/browse/BACK-205",
+        ),
     ]
 
     issues: list[dict[str, Any]] = []
-    for (ident, title, status, issue_type, project, reporter,
-         components, priority, labels, days_ago, url) in raw:
+    for (
+        ident,
+        title,
+        status,
+        issue_type,
+        project,
+        reporter,
+        components,
+        priority,
+        labels,
+        days_ago,
+        url,
+    ) in raw:
         created = (now - timedelta(days=days_ago)).isoformat()
         updated = (now - timedelta(days=max(0, days_ago - 1))).isoformat()
         issues.append(
@@ -1004,10 +1196,22 @@ def _generate_deployments() -> list[dict[str, Any]]:
         ("auth-service-prod", "Auth Service Prod", "auth-service", "production", "1.8.3", 3),
         ("auth-service-stg", "Auth Service Staging", "auth-service", "staging", "1.9.0-rc2", 4),
         ("payment-service-prod", "Payment Prod", "payment-service", "production", "3.1.0", 5),
-        ("notification-prod", "Notification Prod",
-         "notification-service", "production", "1.2.7", 6),
-        ("notification-stg", "Notification Staging",
-         "notification-service", "staging", "1.3.0-rc1", 7),
+        (
+            "notification-prod",
+            "Notification Prod",
+            "notification-service",
+            "production",
+            "1.2.7",
+            6,
+        ),
+        (
+            "notification-stg",
+            "Notification Staging",
+            "notification-service",
+            "staging",
+            "1.3.0-rc1",
+            7,
+        ),
         ("user-service-prod", "User Service Prod", "user-service", "production", "4.0.2", 8),
         ("user-service-stg", "User Service Staging", "user-service", "staging", "4.1.0-rc1", 10),
         ("search-service-prod", "Search Prod", "search-service", "production", "2.0.0", 12),
@@ -1015,8 +1219,16 @@ def _generate_deployments() -> list[dict[str, Any]]:
     ]
 
     shas = [
-        "a1b2c3d", "e4f5g6h", "i7j8k9l", "m0n1o2p", "q3r4s5t",
-        "u6v7w8x", "y9z0a1b", "c2d3e4f", "g5h6i7j", "k8l9m0n",
+        "a1b2c3d",
+        "e4f5g6h",
+        "i7j8k9l",
+        "m0n1o2p",
+        "q3r4s5t",
+        "u6v7w8x",
+        "y9z0a1b",
+        "c2d3e4f",
+        "g5h6i7j",
+        "k8l9m0n",
         "o1p2q3r",
     ]
 
@@ -1187,9 +1399,7 @@ async def cleanup_demo_data(
     return deleted
 
 
-async def _safe_delete_entity(
-    client: PortClient, blueprint_id: str, identifier: str
-) -> bool:
+async def _safe_delete_entity(client: PortClient, blueprint_id: str, identifier: str) -> bool:
     """Delete an entity, returning False on 404.
 
     Args:
@@ -1210,9 +1420,7 @@ async def _safe_delete_entity(
         raise
 
 
-async def _safe_delete_scorecard(
-    client: PortClient, blueprint_id: str, identifier: str
-) -> bool:
+async def _safe_delete_scorecard(client: PortClient, blueprint_id: str, identifier: str) -> bool:
     """Delete a scorecard, returning False on 404.
 
     Args:

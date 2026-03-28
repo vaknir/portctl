@@ -211,17 +211,107 @@ async def _apply_scorecard_upsert(
         )
 
 
+async def _apply_action_upsert(
+    client: PortClient,
+    change: ResourceChange,
+    local_actions: dict[str, dict[str, Any]],
+) -> ApplyResourceResult:
+    """Apply an action create or update.
+
+    Args:
+        client: Authenticated Port API client.
+        change: The resource change to apply.
+        local_actions: Dict of local action data keyed by identifier.
+
+    Returns:
+        The result of applying this resource.
+    """
+    action = "created" if change.action == "create" else "updated"
+    data = local_actions.get(change.identifier)
+    if data is None:
+        return ApplyResourceResult(
+            resource_type="action",
+            identifier=change.identifier,
+            action=action,
+            success=False,
+            error=f"Local YAML not found for action '{change.identifier}'",
+        )
+
+    try:
+        await client.upsert_action(data)
+        logger.info("Action %s: %s", action, change.identifier)
+        return ApplyResourceResult(
+            resource_type="action",
+            identifier=change.identifier,
+            action=action,
+            success=True,
+        )
+    except Exception as exc:
+        logger.error("Failed to %s action '%s': %s", change.action, change.identifier, exc)
+        return ApplyResourceResult(
+            resource_type="action",
+            identifier=change.identifier,
+            action=action,
+            success=False,
+            error=str(exc),
+        )
+
+
+async def _apply_page_upsert(
+    client: PortClient,
+    change: ResourceChange,
+    local_pages: dict[str, dict[str, Any]],
+) -> ApplyResourceResult:
+    """Apply a page create or update.
+
+    Args:
+        client: Authenticated Port API client.
+        change: The resource change to apply.
+        local_pages: Dict of local page data keyed by identifier.
+
+    Returns:
+        The result of applying this resource.
+    """
+    action = "created" if change.action == "create" else "updated"
+    data = local_pages.get(change.identifier)
+    if data is None:
+        return ApplyResourceResult(
+            resource_type="page",
+            identifier=change.identifier,
+            action=action,
+            success=False,
+            error=f"Local YAML not found for page '{change.identifier}'",
+        )
+
+    try:
+        await client.upsert_page(data)
+        logger.info("Page %s: %s", action, change.identifier)
+        return ApplyResourceResult(
+            resource_type="page",
+            identifier=change.identifier,
+            action=action,
+            success=True,
+        )
+    except Exception as exc:
+        logger.error("Failed to %s page '%s': %s", change.action, change.identifier, exc)
+        return ApplyResourceResult(
+            resource_type="page",
+            identifier=change.identifier,
+            action=action,
+            success=False,
+            error=str(exc),
+        )
+
+
 async def _apply_delete(
     client: PortClient,
     change: ResourceChange,
-    local_scorecards: dict[str, dict[str, Any]],
 ) -> ApplyResourceResult:
     """Apply a resource deletion.
 
     Args:
         client: Authenticated Port API client.
         change: The resource change to apply (must be a delete).
-        local_scorecards: Dict of local scorecard data (used for blueprint lookup on scorecards).
 
     Returns:
         The result of applying this deletion.
@@ -230,13 +320,21 @@ async def _apply_delete(
         if change.resource_type == "blueprint":
             await client.delete_blueprint(change.identifier)
         elif change.resource_type == "scorecard":
-            # For scorecard deletes, we need the blueprint_id from the planner.
             if change.parent_identifier is None:
                 raise ValueError(
                     f"Cannot delete scorecard '{change.identifier}': "
                     f"parent_identifier (blueprint) is not set"
                 )
             await client.delete_scorecard(change.parent_identifier, change.identifier)
+        elif change.resource_type == "action":
+            if change.parent_identifier is None:
+                raise ValueError(
+                    f"Cannot delete action '{change.identifier}': "
+                    f"parent_identifier (blueprint) is not set"
+                )
+            await client.delete_action(change.identifier)
+        elif change.resource_type == "page":
+            await client.delete_page(change.identifier)
 
         logger.info("%s deleted: %s", change.resource_type.capitalize(), change.identifier)
         return ApplyResourceResult(
@@ -246,9 +344,7 @@ async def _apply_delete(
             success=True,
         )
     except Exception as exc:
-        logger.error(
-            "Failed to delete %s '%s': %s", change.resource_type, change.identifier, exc
-        )
+        logger.error("Failed to delete %s '%s': %s", change.resource_type, change.identifier, exc)
         return ApplyResourceResult(
             resource_type=change.resource_type,
             identifier=change.identifier,
@@ -256,6 +352,62 @@ async def _apply_delete(
             success=False,
             error=str(exc),
         )
+
+
+def _load_local_actions(config_dir: Path) -> dict[str, dict[str, Any]]:
+    """Load all local action YAML files.
+
+    Args:
+        config_dir: Root config directory containing actions/.
+
+    Returns:
+        Dict mapping action identifier to parsed YAML data.
+    """
+    actions: dict[str, dict[str, Any]] = {}
+    action_dir = config_dir / "actions"
+
+    if not action_dir.is_dir():
+        return actions
+
+    for ac_file in sorted(action_dir.glob("*.yaml")):
+        try:
+            with ac_file.open() as f:
+                data = yaml.safe_load(f)
+            if isinstance(data, dict) and "identifier" in data:
+                actions[data["identifier"]] = data
+        except yaml.YAMLError:
+            logger.warning("Skipping unparseable YAML: %s", ac_file)
+            continue
+
+    return actions
+
+
+def _load_local_pages(config_dir: Path) -> dict[str, dict[str, Any]]:
+    """Load all local page YAML files.
+
+    Args:
+        config_dir: Root config directory containing pages/.
+
+    Returns:
+        Dict mapping page identifier to parsed YAML data.
+    """
+    pages: dict[str, dict[str, Any]] = {}
+    page_dir = config_dir / "pages"
+
+    if not page_dir.is_dir():
+        return pages
+
+    for pg_file in sorted(page_dir.glob("*.yaml")):
+        try:
+            with pg_file.open() as f:
+                data = yaml.safe_load(f)
+            if isinstance(data, dict) and "identifier" in data:
+                pages[data["identifier"]] = data
+        except yaml.YAMLError:
+            logger.warning("Skipping unparseable YAML: %s", pg_file)
+            continue
+
+    return pages
 
 
 async def apply_org(
@@ -270,7 +422,9 @@ async def apply_org(
     Apply in dependency order:
     1. Blueprints (creates first, then updates)
     2. Scorecards (creates first, then updates)
-    3. Deletions last (scorecards first, then blueprints -- reverse order)
+    3. Actions (creates first, then updates)
+    4. Pages (creates first, then updates)
+    5. Deletions last (pages, actions, scorecards, blueprints -- reverse order)
 
     Skip deletes unless prune=True.
 
@@ -280,8 +434,8 @@ async def apply_org(
         client: Authenticated Port API client.
         plan: The plan result with changes to apply.
         prune: Whether to apply deletions.
-        config_dir: Root config directory containing blueprints/ and scorecards/.
-            Defaults to current working directory.
+        config_dir: Root config directory containing blueprints/, scorecards/,
+            actions/, and pages/. Defaults to current working directory.
 
     Returns:
         An ApplyResult with per-resource outcomes.
@@ -298,8 +452,8 @@ async def apply_org(
 
     # Filter out ignored resources from the plan
     ignore = load_ignore_filter(config_dir)
-    # ResourceChange uses singular resource_type ("blueprint", "scorecard") but
-    # ignore rules use plural directory names ("blueprints", "scorecards").
+    # ResourceChange uses singular resource_type ("blueprint", "scorecard", etc.)
+    # but ignore rules use plural directory names ("blueprints", "scorecards", etc.).
     filtered_changes = [
         c for c in plan.changes if not ignore.is_ignored(f"{c.resource_type}s", c.identifier)
     ]
@@ -310,63 +464,58 @@ async def apply_org(
     # Load local YAML data for creates/updates
     local_blueprints = _load_local_blueprints(config_dir)
     local_scorecards = _load_local_scorecards(config_dir)
+    local_actions = _load_local_actions(config_dir)
+    local_pages = _load_local_pages(config_dir)
 
-    # Separate changes by type and action
-    bp_creates = [
-        c for c in filtered_changes
-        if c.resource_type == "blueprint" and c.action == "create"
-    ]
-    bp_updates = [
-        c for c in filtered_changes
-        if c.resource_type == "blueprint" and c.action == "update"
-    ]
-    sc_creates = [
-        c for c in filtered_changes
-        if c.resource_type == "scorecard" and c.action == "create"
-    ]
-    sc_updates = [
-        c for c in filtered_changes
-        if c.resource_type == "scorecard" and c.action == "update"
-    ]
-    sc_deletes = [
-        c for c in filtered_changes
-        if c.resource_type == "scorecard" and c.action == "delete"
-    ]
-    bp_deletes = [
-        c for c in filtered_changes
-        if c.resource_type == "blueprint" and c.action == "delete"
-    ]
+    # Helper to filter changes by type and action
+    def _filter(rtype: str, act: str) -> list[ResourceChange]:
+        return [c for c in filtered_changes if c.resource_type == rtype and c.action == act]
 
-    # Phase 1: Blueprint creates
-    for change in bp_creates:
+    # Phase 1: Blueprint creates & updates
+    for change in _filter("blueprint", "create"):
+        result = await _apply_blueprint_upsert(client, change, local_blueprints)
+        results.append(result)
+    for change in _filter("blueprint", "update"):
         result = await _apply_blueprint_upsert(client, change, local_blueprints)
         results.append(result)
 
-    # Phase 2: Blueprint updates
-    for change in bp_updates:
-        result = await _apply_blueprint_upsert(client, change, local_blueprints)
+    # Phase 2: Scorecard creates & updates
+    for change in _filter("scorecard", "create"):
+        result = await _apply_scorecard_upsert(client, change, local_scorecards)
         results.append(result)
-
-    # Phase 3: Scorecard creates
-    for change in sc_creates:
+    for change in _filter("scorecard", "update"):
         result = await _apply_scorecard_upsert(client, change, local_scorecards)
         results.append(result)
 
-    # Phase 4: Scorecard updates
-    for change in sc_updates:
-        result = await _apply_scorecard_upsert(client, change, local_scorecards)
+    # Phase 3: Action creates & updates
+    for change in _filter("action", "create"):
+        result = await _apply_action_upsert(client, change, local_actions)
+        results.append(result)
+    for change in _filter("action", "update"):
+        result = await _apply_action_upsert(client, change, local_actions)
         results.append(result)
 
-    # Phase 5: Deletions (only if prune=True)
+    # Phase 4: Page creates & updates
+    for change in _filter("page", "create"):
+        result = await _apply_page_upsert(client, change, local_pages)
+        results.append(result)
+    for change in _filter("page", "update"):
+        result = await _apply_page_upsert(client, change, local_pages)
+        results.append(result)
+
+    # Phase 5: Deletions (only if prune=True) -- reverse dependency order
     if prune:
-        # Delete scorecards first (reverse dependency order)
-        for change in sc_deletes:
-            result = await _apply_delete(client, change, local_scorecards)
+        for change in _filter("page", "delete"):
+            result = await _apply_delete(client, change)
             results.append(result)
-
-        # Then delete blueprints
-        for change in bp_deletes:
-            result = await _apply_delete(client, change, local_scorecards)
+        for change in _filter("action", "delete"):
+            result = await _apply_delete(client, change)
+            results.append(result)
+        for change in _filter("scorecard", "delete"):
+            result = await _apply_delete(client, change)
+            results.append(result)
+        for change in _filter("blueprint", "delete"):
+            result = await _apply_delete(client, change)
             results.append(result)
 
     return ApplyResult(results=results)

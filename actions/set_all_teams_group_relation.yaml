@@ -1,0 +1,23 @@
+identifier: set_all_teams_group_relation
+title: Set All Teams group relation to a new team
+blueprint: ''
+trigger:
+  type: automation
+  event:
+    type: ENTITY_CREATED
+    blueprintIdentifier: _team
+  condition:
+    type: JQ
+    expressions:
+    - .diff.after.relations.group == null
+    combinator: and
+invocation_method:
+  type: UPSERT_ENTITY
+  blueprintIdentifier: _team
+  mapping:
+    identifier: '{{.event.diff.after.identifier}}'
+    relations:
+      group: all_teams
+user_properties: {}
+description: Set relations between a new team created with no group and the 'all teams' group
+required_approval: false

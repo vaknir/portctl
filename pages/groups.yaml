@@ -1,0 +1,19 @@
+identifier: groups
+title: Groups
+type: blueprint-entities
+icon: Home
+widgets:
+- id: group-explorer
+  type: table-entities-explorer
+  blueprint: group
+  dataset:
+    combinator: and
+    rules: []
+  blueprintConfig:
+    group:
+      groupSettings:
+        groupBy: []
+      propertiesSettings:
+        order: []
+locked: false
+parent: manage_users_and_teams

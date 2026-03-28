@@ -1,0 +1,19 @@
+identifier: jiraUsers
+title: Jira Users
+type: blueprint-entities
+icon: Jira
+widgets:
+- id: jiraUser-explorer
+  type: table-entities-explorer
+  blueprint: jiraUser
+  dataset:
+    combinator: and
+    rules: []
+  blueprintConfig:
+    jiraUser:
+      groupSettings:
+        groupBy: []
+      propertiesSettings:
+        order: []
+locked: false
+parent: catalog_tables

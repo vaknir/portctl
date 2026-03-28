@@ -39,9 +39,7 @@ def _make_config(
 class TestDetectCiEnvironment:
     """Tests for detect_ci_environment function."""
 
-    def test_detect_ci_github_actions(
-        self, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_detect_ci_github_actions(self, monkeypatch: pytest.MonkeyPatch) -> None:
         """GITHUB_ACTIONS=true returns (True, 'github-actions')."""
         from portctl.services.whoami import detect_ci_environment
 
@@ -58,9 +56,7 @@ class TestDetectCiEnvironment:
         assert is_ci is True
         assert provider == "github-actions"
 
-    def test_detect_ci_gitlab(
-        self, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_detect_ci_gitlab(self, monkeypatch: pytest.MonkeyPatch) -> None:
         """GITLAB_CI=true returns (True, 'gitlab-ci')."""
         from portctl.services.whoami import detect_ci_environment
 
@@ -77,9 +73,7 @@ class TestDetectCiEnvironment:
         assert is_ci is True
         assert provider == "gitlab-ci"
 
-    def test_detect_ci_jenkins(
-        self, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_detect_ci_jenkins(self, monkeypatch: pytest.MonkeyPatch) -> None:
         """JENKINS_URL set returns (True, 'jenkins')."""
         from portctl.services.whoami import detect_ci_environment
 
@@ -96,9 +90,7 @@ class TestDetectCiEnvironment:
         assert is_ci is True
         assert provider == "jenkins"
 
-    def test_detect_ci_generic(
-        self, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_detect_ci_generic(self, monkeypatch: pytest.MonkeyPatch) -> None:
         """CI=true with no specific provider returns (True, 'ci')."""
         from portctl.services.whoami import detect_ci_environment
 
@@ -115,9 +107,7 @@ class TestDetectCiEnvironment:
         assert is_ci is True
         assert provider == "ci"
 
-    def test_detect_ci_none(
-        self, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_detect_ci_none(self, monkeypatch: pytest.MonkeyPatch) -> None:
         """No CI env vars returns (False, None)."""
         from portctl.services.whoami import detect_ci_environment
 

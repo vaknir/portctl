@@ -37,9 +37,7 @@ class TestCLIHelp:
     @pytest.mark.parametrize("group", EXPECTED_COMMAND_GROUPS)
     def test_command_group_registered(self, group: str) -> None:
         result = runner.invoke(app, ["--help"])
-        assert group in result.output, (
-            f"Command group '{group}' not found in --help output"
-        )
+        assert group in result.output, f"Command group '{group}' not found in --help output"
 
     @pytest.mark.parametrize("group", EXPECTED_COMMAND_GROUPS)
     def test_command_group_help(self, group: str) -> None:

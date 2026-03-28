@@ -1,0 +1,19 @@
+identifier: githubTeams
+title: GitHub Teams
+type: blueprint-entities
+icon: Github
+widgets:
+- id: githubTeam-explorer
+  type: table-entities-explorer
+  blueprint: githubTeam
+  dataset:
+    combinator: and
+    rules: []
+  blueprintConfig:
+    githubTeam:
+      groupSettings:
+        groupBy: []
+      propertiesSettings:
+        order: []
+locked: false
+parent: catalog_tables

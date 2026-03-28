@@ -1,0 +1,19 @@
+identifier: jiraIssues
+title: Jira Issues
+type: blueprint-entities
+icon: Jira
+widgets:
+- id: jiraIssue-explorer
+  type: table-entities-explorer
+  blueprint: jiraIssue
+  dataset:
+    combinator: and
+    rules: []
+  blueprintConfig:
+    jiraIssue:
+      groupSettings:
+        groupBy: []
+      propertiesSettings:
+        order: []
+locked: false
+parent: catalog_tables

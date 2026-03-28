@@ -14,6 +14,8 @@ if TYPE_CHECKING:
 
 _BLUEPRINT_REQUIRED_FIELDS = ("identifier", "title")
 _SCORECARD_REQUIRED_FIELDS = ("identifier", "title", "blueprint")
+_ACTION_REQUIRED_FIELDS = ("identifier", "title", "blueprint")
+_PAGE_REQUIRED_FIELDS = ("identifier", "title")
 
 
 def validate_yaml_syntax(file_path: Path) -> list[ValidationIssue]:
@@ -94,6 +96,64 @@ def validate_scorecard_schema(file_path: Path, data: dict) -> list[ValidationIss
     return issues
 
 
+def validate_action_schema(file_path: Path, data: dict) -> list[ValidationIssue]:  # type: ignore[type-arg]
+    """Validate that an action has all required fields with correct types."""
+    issues: list[ValidationIssue] = []
+    for field_name in _ACTION_REQUIRED_FIELDS:
+        if field_name not in data:
+            issues.append(
+                ValidationIssue(
+                    file_path=str(file_path),
+                    line=None,
+                    message=f"Missing required field: {field_name}",
+                    severity="error",
+                    suggestion=f"Add '{field_name}' to the action definition",
+                )
+            )
+        elif not isinstance(data[field_name], str):
+            issues.append(
+                ValidationIssue(
+                    file_path=str(file_path),
+                    line=None,
+                    message=(
+                        f"Field '{field_name}' must be a string, "
+                        f"got {type(data[field_name]).__name__}"
+                    ),
+                    severity="error",
+                )
+            )
+    return issues
+
+
+def validate_page_schema(file_path: Path, data: dict) -> list[ValidationIssue]:  # type: ignore[type-arg]
+    """Validate that a page has all required fields with correct types."""
+    issues: list[ValidationIssue] = []
+    for field_name in _PAGE_REQUIRED_FIELDS:
+        if field_name not in data:
+            issues.append(
+                ValidationIssue(
+                    file_path=str(file_path),
+                    line=None,
+                    message=f"Missing required field: {field_name}",
+                    severity="error",
+                    suggestion=f"Add '{field_name}' to the page definition",
+                )
+            )
+        elif not isinstance(data[field_name], str):
+            issues.append(
+                ValidationIssue(
+                    file_path=str(file_path),
+                    line=None,
+                    message=(
+                        f"Field '{field_name}' must be a string, "
+                        f"got {type(data[field_name]).__name__}"
+                    ),
+                    severity="error",
+                )
+            )
+    return issues
+
+
 def validate_scorecard_level_refs(file_path: Path, data: dict) -> list[ValidationIssue]:  # type: ignore[type-arg]
     """Validate that each rule.level references a defined level in the same scorecard."""
     issues: list[ValidationIssue] = []
@@ -102,9 +162,7 @@ def validate_scorecard_level_refs(file_path: Path, data: dict) -> list[Validatio
         return issues
 
     level_titles = {
-        lvl.get("title")
-        for lvl in levels
-        if isinstance(lvl, dict) and lvl.get("title") is not None
+        lvl.get("title") for lvl in levels if isinstance(lvl, dict) and lvl.get("title") is not None
     }
 
     rules = data.get("rules", [])
@@ -171,12 +229,20 @@ def validate_cross_file_refs(
         if close:
             suggestion = f"Did you mean '{close[0]}'?"
 
+        # Detect resource type from file path for a meaningful error message
+        resource_type = "Resource"
+        parent_dir = scorecard_path.parent.name
+        if parent_dir == "scorecards":
+            resource_type = "Scorecard"
+        elif parent_dir == "actions":
+            resource_type = "Action"
+
         issues.append(
             ValidationIssue(
                 file_path=str(scorecard_path),
                 line=None,
                 message=(
-                    f"Scorecard references blueprint '{bp_ref}' "
+                    f"{resource_type} references blueprint '{bp_ref}' "
                     f"which does not exist in {blueprint_dir}"
                 ),
                 severity="error",
@@ -257,6 +323,8 @@ def run_layer1(config_dir: Path) -> ValidationResult:
     result = ValidationResult()
     blueprint_dir = config_dir / "blueprints"
     scorecard_dir = config_dir / "scorecards"
+    action_dir = config_dir / "actions"
+    page_dir = config_dir / "pages"
 
     # Collect parsed blueprints for cross-file checks
     blueprints: dict[str, dict] = {}  # type: ignore[type-arg]
@@ -298,15 +366,47 @@ def run_layer1(config_dir: Path) -> ValidationResult:
             result.issues.extend(validate_scorecard_level_refs(sc_file, data))
 
             if blueprint_dir.is_dir():
-                result.issues.extend(
-                    validate_cross_file_refs(sc_file, data, blueprint_dir)
-                )
+                result.issues.extend(validate_cross_file_refs(sc_file, data, blueprint_dir))
 
             # Property ref validation (if blueprint exists)
             bp_ref = data.get("blueprint")
             if bp_ref and bp_ref in blueprints:
-                result.issues.extend(
-                    validate_property_refs(sc_file, data, blueprints[bp_ref])
-                )
+                result.issues.extend(validate_property_refs(sc_file, data, blueprints[bp_ref]))
+
+    # Validate actions
+    if action_dir.is_dir():
+        for ac_file in sorted(action_dir.glob("*.yaml")):
+            syntax_issues = validate_yaml_syntax(ac_file)
+            result.issues.extend(syntax_issues)
+            if syntax_issues:
+                continue
+
+            with ac_file.open() as f:
+                data = yaml.safe_load(f)
+            if not isinstance(data, dict):
+                result.add_error(str(ac_file), "File does not contain a YAML mapping")
+                continue
+
+            result.issues.extend(validate_action_schema(ac_file, data))
+
+            # Cross-file: action.blueprint must reference an existing blueprint
+            if blueprint_dir.is_dir():
+                result.issues.extend(validate_cross_file_refs(ac_file, data, blueprint_dir))
+
+    # Validate pages
+    if page_dir.is_dir():
+        for pg_file in sorted(page_dir.glob("*.yaml")):
+            syntax_issues = validate_yaml_syntax(pg_file)
+            result.issues.extend(syntax_issues)
+            if syntax_issues:
+                continue
+
+            with pg_file.open() as f:
+                data = yaml.safe_load(f)
+            if not isinstance(data, dict):
+                result.add_error(str(pg_file), "File does not contain a YAML mapping")
+                continue
+
+            result.issues.extend(validate_page_schema(pg_file, data))
 
     return result

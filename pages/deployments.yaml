@@ -1,0 +1,25 @@
+identifier: deployments
+title: Deployments
+type: blueprint-entities
+icon: Deployment
+widgets:
+- id: EovzM3cPxQzyitiu
+  type: table-entities-explorer
+  blueprint: deployment
+  dataset:
+    combinator: and
+    rules: []
+  blueprintConfig:
+    deployment:
+      propertiesSettings:
+        order: []
+        shown:
+        - $identifier
+        - $updatedAt
+        - $createdAt
+        - version
+        - status
+        - deployed_at
+        - commit_sha
+locked: false
+parent: catalog_tables

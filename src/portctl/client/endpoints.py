@@ -15,9 +15,9 @@ BLUEPRINT_BY_ID = "/blueprints/{identifier}"
 SCORECARDS = "/blueprints/{blueprint_id}/scorecards"
 SCORECARD_BY_ID = "/blueprints/{blueprint_id}/scorecards/{identifier}"
 
-# Actions
-ACTIONS = "/blueprints/{blueprint_id}/actions"
-ACTION_BY_ID = "/blueprints/{blueprint_id}/actions/{identifier}"
+# Actions (top-level — /blueprints/{id}/actions is deprecated since 2025)
+ACTIONS = "/actions"
+ACTION_BY_ID = "/actions/{identifier}"
 
 # Pages
 PAGES = "/pages"

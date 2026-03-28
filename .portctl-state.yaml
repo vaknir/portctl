@@ -559,3 +559,723 @@ export_events:
   - resource_type: scorecard
     identifier: code-quality
     action: imported
+- id: initial-export
+  timestamp: '2026-03-28T19:57:04.153367+00:00'
+  applied_by: vaknir
+  via: export
+  note: Initial export -- baseline snapshot
+  changes:
+  - resource_type: blueprint
+    identifier: group
+    action: imported
+  - resource_type: blueprint
+    identifier: jiraProject
+    action: imported
+  - resource_type: blueprint
+    identifier: service
+    action: imported
+  - resource_type: blueprint
+    identifier: githubUser
+    action: imported
+  - resource_type: blueprint
+    identifier: githubOrganization
+    action: imported
+  - resource_type: blueprint
+    identifier: githubRepository
+    action: imported
+  - resource_type: blueprint
+    identifier: workload
+    action: imported
+  - resource_type: blueprint
+    identifier: jiraUser
+    action: imported
+  - resource_type: blueprint
+    identifier: githubTeam
+    action: imported
+  - resource_type: blueprint
+    identifier: team
+    action: imported
+  - resource_type: blueprint
+    identifier: githubPullRequest
+    action: imported
+  - resource_type: blueprint
+    identifier: microservice
+    action: imported
+  - resource_type: blueprint
+    identifier: environment
+    action: imported
+  - resource_type: blueprint
+    identifier: jiraIssue
+    action: imported
+  - resource_type: blueprint
+    identifier: deployment
+    action: imported
+  - resource_type: scorecard
+    identifier: ProductionReadinessGithubOcean
+    action: imported
+  - resource_type: scorecard
+    identifier: production-readiness
+    action: imported
+  - resource_type: scorecard
+    identifier: security
+    action: imported
+  - resource_type: scorecard
+    identifier: code-quality
+    action: imported
+  - resource_type: action
+    identifier: set_ownership
+    action: imported
+  - resource_type: action
+    identifier: set_all_teams_group_relation
+    action: imported
+  - resource_type: action
+    identifier: create_an_issue
+    action: imported
+  - resource_type: action
+    identifier: set_repository_team_relations
+    action: imported
+  - resource_type: action
+    identifier: set_jira_issue_user_relations
+    action: imported
+  - resource_type: page
+    identifier: groupEntity
+    action: imported
+  - resource_type: page
+    identifier: jiraIssues
+    action: imported
+  - resource_type: page
+    identifier: githubRepositories
+    action: imported
+  - resource_type: page
+    identifier: jiraUsers
+    action: imported
+  - resource_type: page
+    identifier: workloadEntity
+    action: imported
+  - resource_type: page
+    identifier: services
+    action: imported
+  - resource_type: page
+    identifier: manage_my_teams_work
+    action: imported
+  - resource_type: page
+    identifier: microserviceEntity
+    action: imported
+  - resource_type: page
+    identifier: serviceEntity
+    action: imported
+  - resource_type: page
+    identifier: teams
+    action: imported
+  - resource_type: page
+    identifier: plan_my_day
+    action: imported
+  - resource_type: page
+    identifier: githubOrganizationEntity
+    action: imported
+  - resource_type: page
+    identifier: groups
+    action: imported
+  - resource_type: page
+    identifier: deploymentEntity
+    action: imported
+  - resource_type: page
+    identifier: githubTeams
+    action: imported
+  - resource_type: page
+    identifier: githubPullRequests
+    action: imported
+  - resource_type: page
+    identifier: githubPullRequestEntity
+    action: imported
+  - resource_type: page
+    identifier: jiraIssueEntity
+    action: imported
+  - resource_type: page
+    identifier: set_up_automatic_discovery
+    action: imported
+  - resource_type: page
+    identifier: comply_with_standards
+    action: imported
+  - resource_type: page
+    identifier: deployments
+    action: imported
+  - resource_type: page
+    identifier: teamEntity
+    action: imported
+  - resource_type: page
+    identifier: githubOrganizations
+    action: imported
+  - resource_type: page
+    identifier: jiraProjects
+    action: imported
+  - resource_type: page
+    identifier: githubUsers
+    action: imported
+  - resource_type: page
+    identifier: microservices
+    action: imported
+  - resource_type: page
+    identifier: jiraProjectEntity
+    action: imported
+  - resource_type: page
+    identifier: jiraUserEntity
+    action: imported
+  - resource_type: page
+    identifier: environmentEntity
+    action: imported
+  - resource_type: page
+    identifier: githubRepositoryEntity
+    action: imported
+  - resource_type: page
+    identifier: githubTeamEntity
+    action: imported
+  - resource_type: page
+    identifier: githubUserEntity
+    action: imported
+  - resource_type: page
+    identifier: environments
+    action: imported
+  - resource_type: page
+    identifier: workloads
+    action: imported
+- id: initial-export
+  timestamp: '2026-03-28T19:59:51.593519+00:00'
+  applied_by: vaknir
+  via: export
+  note: Initial export -- baseline snapshot
+  changes:
+  - resource_type: blueprint
+    identifier: group
+    action: imported
+  - resource_type: blueprint
+    identifier: jiraProject
+    action: imported
+  - resource_type: blueprint
+    identifier: service
+    action: imported
+  - resource_type: blueprint
+    identifier: githubUser
+    action: imported
+  - resource_type: blueprint
+    identifier: githubOrganization
+    action: imported
+  - resource_type: blueprint
+    identifier: githubRepository
+    action: imported
+  - resource_type: blueprint
+    identifier: workload
+    action: imported
+  - resource_type: blueprint
+    identifier: jiraUser
+    action: imported
+  - resource_type: blueprint
+    identifier: githubTeam
+    action: imported
+  - resource_type: blueprint
+    identifier: team
+    action: imported
+  - resource_type: blueprint
+    identifier: githubPullRequest
+    action: imported
+  - resource_type: blueprint
+    identifier: microservice
+    action: imported
+  - resource_type: blueprint
+    identifier: environment
+    action: imported
+  - resource_type: blueprint
+    identifier: jiraIssue
+    action: imported
+  - resource_type: blueprint
+    identifier: deployment
+    action: imported
+  - resource_type: scorecard
+    identifier: ProductionReadinessGithubOcean
+    action: imported
+  - resource_type: scorecard
+    identifier: production-readiness
+    action: imported
+  - resource_type: scorecard
+    identifier: security
+    action: imported
+  - resource_type: scorecard
+    identifier: code-quality
+    action: imported
+  - resource_type: action
+    identifier: set_ownership
+    action: imported
+  - resource_type: action
+    identifier: set_all_teams_group_relation
+    action: imported
+  - resource_type: action
+    identifier: create_an_issue
+    action: imported
+  - resource_type: action
+    identifier: set_repository_team_relations
+    action: imported
+  - resource_type: action
+    identifier: set_jira_issue_user_relations
+    action: imported
+  - resource_type: page
+    identifier: groupEntity
+    action: imported
+  - resource_type: page
+    identifier: jiraIssues
+    action: imported
+  - resource_type: page
+    identifier: githubRepositories
+    action: imported
+  - resource_type: page
+    identifier: jiraUsers
+    action: imported
+  - resource_type: page
+    identifier: workloadEntity
+    action: imported
+  - resource_type: page
+    identifier: services
+    action: imported
+  - resource_type: page
+    identifier: manage_my_teams_work
+    action: imported
+  - resource_type: page
+    identifier: microserviceEntity
+    action: imported
+  - resource_type: page
+    identifier: serviceEntity
+    action: imported
+  - resource_type: page
+    identifier: teams
+    action: imported
+  - resource_type: page
+    identifier: plan_my_day
+    action: imported
+  - resource_type: page
+    identifier: githubOrganizationEntity
+    action: imported
+  - resource_type: page
+    identifier: groups
+    action: imported
+  - resource_type: page
+    identifier: deploymentEntity
+    action: imported
+  - resource_type: page
+    identifier: githubTeams
+    action: imported
+  - resource_type: page
+    identifier: githubPullRequests
+    action: imported
+  - resource_type: page
+    identifier: githubPullRequestEntity
+    action: imported
+  - resource_type: page
+    identifier: jiraIssueEntity
+    action: imported
+  - resource_type: page
+    identifier: set_up_automatic_discovery
+    action: imported
+  - resource_type: page
+    identifier: comply_with_standards
+    action: imported
+  - resource_type: page
+    identifier: deployments
+    action: imported
+  - resource_type: page
+    identifier: teamEntity
+    action: imported
+  - resource_type: page
+    identifier: githubOrganizations
+    action: imported
+  - resource_type: page
+    identifier: jiraProjects
+    action: imported
+  - resource_type: page
+    identifier: githubUsers
+    action: imported
+  - resource_type: page
+    identifier: microservices
+    action: imported
+  - resource_type: page
+    identifier: jiraProjectEntity
+    action: imported
+  - resource_type: page
+    identifier: jiraUserEntity
+    action: imported
+  - resource_type: page
+    identifier: environmentEntity
+    action: imported
+  - resource_type: page
+    identifier: githubRepositoryEntity
+    action: imported
+  - resource_type: page
+    identifier: githubTeamEntity
+    action: imported
+  - resource_type: page
+    identifier: githubUserEntity
+    action: imported
+  - resource_type: page
+    identifier: environments
+    action: imported
+  - resource_type: page
+    identifier: workloads
+    action: imported
+- id: initial-export
+  timestamp: '2026-03-28T20:01:31.673538+00:00'
+  applied_by: vaknir
+  via: export
+  note: Initial export -- baseline snapshot
+  changes:
+  - resource_type: blueprint
+    identifier: group
+    action: imported
+  - resource_type: blueprint
+    identifier: jiraProject
+    action: imported
+  - resource_type: blueprint
+    identifier: service
+    action: imported
+  - resource_type: blueprint
+    identifier: githubUser
+    action: imported
+  - resource_type: blueprint
+    identifier: githubOrganization
+    action: imported
+  - resource_type: blueprint
+    identifier: githubRepository
+    action: imported
+  - resource_type: blueprint
+    identifier: workload
+    action: imported
+  - resource_type: blueprint
+    identifier: jiraUser
+    action: imported
+  - resource_type: blueprint
+    identifier: githubTeam
+    action: imported
+  - resource_type: blueprint
+    identifier: team
+    action: imported
+  - resource_type: blueprint
+    identifier: githubPullRequest
+    action: imported
+  - resource_type: blueprint
+    identifier: microservice
+    action: imported
+  - resource_type: blueprint
+    identifier: environment
+    action: imported
+  - resource_type: blueprint
+    identifier: jiraIssue
+    action: imported
+  - resource_type: blueprint
+    identifier: deployment
+    action: imported
+  - resource_type: scorecard
+    identifier: ProductionReadinessGithubOcean
+    action: imported
+  - resource_type: scorecard
+    identifier: production-readiness
+    action: imported
+  - resource_type: scorecard
+    identifier: security
+    action: imported
+  - resource_type: scorecard
+    identifier: code-quality
+    action: imported
+  - resource_type: action
+    identifier: set_ownership
+    action: imported
+  - resource_type: action
+    identifier: set_all_teams_group_relation
+    action: imported
+  - resource_type: action
+    identifier: create_an_issue
+    action: imported
+  - resource_type: action
+    identifier: set_repository_team_relations
+    action: imported
+  - resource_type: action
+    identifier: set_jira_issue_user_relations
+    action: imported
+  - resource_type: page
+    identifier: groupEntity
+    action: imported
+  - resource_type: page
+    identifier: jiraIssues
+    action: imported
+  - resource_type: page
+    identifier: githubRepositories
+    action: imported
+  - resource_type: page
+    identifier: jiraUsers
+    action: imported
+  - resource_type: page
+    identifier: workloadEntity
+    action: imported
+  - resource_type: page
+    identifier: services
+    action: imported
+  - resource_type: page
+    identifier: manage_my_teams_work
+    action: imported
+  - resource_type: page
+    identifier: microserviceEntity
+    action: imported
+  - resource_type: page
+    identifier: serviceEntity
+    action: imported
+  - resource_type: page
+    identifier: teams
+    action: imported
+  - resource_type: page
+    identifier: plan_my_day
+    action: imported
+  - resource_type: page
+    identifier: githubOrganizationEntity
+    action: imported
+  - resource_type: page
+    identifier: groups
+    action: imported
+  - resource_type: page
+    identifier: deploymentEntity
+    action: imported
+  - resource_type: page
+    identifier: githubTeams
+    action: imported
+  - resource_type: page
+    identifier: githubPullRequests
+    action: imported
+  - resource_type: page
+    identifier: githubPullRequestEntity
+    action: imported
+  - resource_type: page
+    identifier: jiraIssueEntity
+    action: imported
+  - resource_type: page
+    identifier: set_up_automatic_discovery
+    action: imported
+  - resource_type: page
+    identifier: comply_with_standards
+    action: imported
+  - resource_type: page
+    identifier: deployments
+    action: imported
+  - resource_type: page
+    identifier: teamEntity
+    action: imported
+  - resource_type: page
+    identifier: githubOrganizations
+    action: imported
+  - resource_type: page
+    identifier: jiraProjects
+    action: imported
+  - resource_type: page
+    identifier: githubUsers
+    action: imported
+  - resource_type: page
+    identifier: microservices
+    action: imported
+  - resource_type: page
+    identifier: jiraProjectEntity
+    action: imported
+  - resource_type: page
+    identifier: jiraUserEntity
+    action: imported
+  - resource_type: page
+    identifier: environmentEntity
+    action: imported
+  - resource_type: page
+    identifier: githubRepositoryEntity
+    action: imported
+  - resource_type: page
+    identifier: githubTeamEntity
+    action: imported
+  - resource_type: page
+    identifier: githubUserEntity
+    action: imported
+  - resource_type: page
+    identifier: environments
+    action: imported
+  - resource_type: page
+    identifier: workloads
+    action: imported
+- id: initial-export
+  timestamp: '2026-03-28T20:01:47.370059+00:00'
+  applied_by: vaknir
+  via: export
+  note: Initial export -- baseline snapshot
+  changes:
+  - resource_type: blueprint
+    identifier: group
+    action: imported
+  - resource_type: blueprint
+    identifier: jiraProject
+    action: imported
+  - resource_type: blueprint
+    identifier: service
+    action: imported
+  - resource_type: blueprint
+    identifier: githubUser
+    action: imported
+  - resource_type: blueprint
+    identifier: githubOrganization
+    action: imported
+  - resource_type: blueprint
+    identifier: githubRepository
+    action: imported
+  - resource_type: blueprint
+    identifier: workload
+    action: imported
+  - resource_type: blueprint
+    identifier: jiraUser
+    action: imported
+  - resource_type: blueprint
+    identifier: githubTeam
+    action: imported
+  - resource_type: blueprint
+    identifier: team
+    action: imported
+  - resource_type: blueprint
+    identifier: githubPullRequest
+    action: imported
+  - resource_type: blueprint
+    identifier: microservice
+    action: imported
+  - resource_type: blueprint
+    identifier: environment
+    action: imported
+  - resource_type: blueprint
+    identifier: jiraIssue
+    action: imported
+  - resource_type: blueprint
+    identifier: deployment
+    action: imported
+  - resource_type: scorecard
+    identifier: ProductionReadinessGithubOcean
+    action: imported
+  - resource_type: scorecard
+    identifier: production-readiness
+    action: imported
+  - resource_type: scorecard
+    identifier: security
+    action: imported
+  - resource_type: scorecard
+    identifier: code-quality
+    action: imported
+  - resource_type: action
+    identifier: set_ownership
+    action: imported
+  - resource_type: action
+    identifier: set_all_teams_group_relation
+    action: imported
+  - resource_type: action
+    identifier: create_an_issue
+    action: imported
+  - resource_type: action
+    identifier: set_repository_team_relations
+    action: imported
+  - resource_type: action
+    identifier: set_jira_issue_user_relations
+    action: imported
+  - resource_type: page
+    identifier: groupEntity
+    action: imported
+  - resource_type: page
+    identifier: jiraIssues
+    action: imported
+  - resource_type: page
+    identifier: githubRepositories
+    action: imported
+  - resource_type: page
+    identifier: jiraUsers
+    action: imported
+  - resource_type: page
+    identifier: workloadEntity
+    action: imported
+  - resource_type: page
+    identifier: services
+    action: imported
+  - resource_type: page
+    identifier: manage_my_teams_work
+    action: imported
+  - resource_type: page
+    identifier: microserviceEntity
+    action: imported
+  - resource_type: page
+    identifier: serviceEntity
+    action: imported
+  - resource_type: page
+    identifier: teams
+    action: imported
+  - resource_type: page
+    identifier: plan_my_day
+    action: imported
+  - resource_type: page
+    identifier: githubOrganizationEntity
+    action: imported
+  - resource_type: page
+    identifier: groups
+    action: imported
+  - resource_type: page
+    identifier: deploymentEntity
+    action: imported
+  - resource_type: page
+    identifier: githubTeams
+    action: imported
+  - resource_type: page
+    identifier: githubPullRequests
+    action: imported
+  - resource_type: page
+    identifier: githubPullRequestEntity
+    action: imported
+  - resource_type: page
+    identifier: jiraIssueEntity
+    action: imported
+  - resource_type: page
+    identifier: set_up_automatic_discovery
+    action: imported
+  - resource_type: page
+    identifier: comply_with_standards
+    action: imported
+  - resource_type: page
+    identifier: deployments
+    action: imported
+  - resource_type: page
+    identifier: teamEntity
+    action: imported
+  - resource_type: page
+    identifier: githubOrganizations
+    action: imported
+  - resource_type: page
+    identifier: jiraProjects
+    action: imported
+  - resource_type: page
+    identifier: githubUsers
+    action: imported
+  - resource_type: page
+    identifier: microservices
+    action: imported
+  - resource_type: page
+    identifier: jiraProjectEntity
+    action: imported
+  - resource_type: page
+    identifier: jiraUserEntity
+    action: imported
+  - resource_type: page
+    identifier: environmentEntity
+    action: imported
+  - resource_type: page
+    identifier: githubRepositoryEntity
+    action: imported
+  - resource_type: page
+    identifier: githubTeamEntity
+    action: imported
+  - resource_type: page
+    identifier: githubUserEntity
+    action: imported
+  - resource_type: page
+    identifier: environments
+    action: imported
+  - resource_type: page
+    identifier: workloads
+    action: imported

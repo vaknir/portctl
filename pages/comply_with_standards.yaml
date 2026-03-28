@@ -1,0 +1,181 @@
+identifier: comply_with_standards
+title: 'Comply with standards '
+type: dashboard
+icon: Score
+description: Track your security, production readiness and quality standards
+widgets:
+- id: comply_with_standards_dashboard
+  type: dashboard-widget
+  layout:
+  - height: 503
+    columns:
+    - id: x3JYem3fDOFx0YDg
+      size: 12
+  - height: 525
+    columns:
+    - id: G3GQv2DWEGlroaTO
+      size: 12
+  widgets:
+  - type: table-entities-explorer
+    blueprint: service
+    displayMode: widget
+    title: Evaluate Service Compliance
+    excludedFields: []
+    description: Review scorecard summaries to ensure services meet required standards
+    icon: Table
+    dataset:
+      combinator: and
+      rules:
+      - operator: '='
+        value: service
+        property: $blueprint
+    blueprintConfig:
+      service:
+        filterSettings:
+          filterBy:
+            combinator: and
+            rules:
+            - property: $team
+              value: []
+              operator: in
+        groupSettings:
+          groupBy: []
+        sortSettings:
+          sortBy: []
+        propertiesSettings:
+          order:
+          - $icon
+          - $title
+          - $team
+          - security-maturity
+          - ProductionReadinessA
+          - ProductionReadiness
+          - ProductionReadinessGithubOcean
+          - ProductionReadinessG
+          - ProductionReadinessB
+          - quality_maturity
+          - $identifier
+          - $updatedAt
+          - $createdAt
+          - snyk_target_name
+          - sonar_project_name
+          - pagerduty_oncall
+          - pagerdutyServiceId
+          - repo_id
+          - last_push
+          - require_code_owner_review
+          - required_approvals_for_pr
+          - _openIncidents
+          - _opsGenieServiceId
+          - git_lab_repository_identifier
+          - gitlab_last_activity
+          - ado_repository_id
+          - ado_last_activity
+          - minimumApproverCount
+          - critical_sonar_vulnerabilities
+          - critical_sonar_bugs
+          - sonar_critical_code_smells
+          - last_sonar_analysis
+          - bitbucket_repository
+          - bitbucket_last_activity
+          - change_failure_rate
+          - freshness
+          - gitlab_repository_freshness
+          - ado_repository_freshness
+          - bitbucket_repository_freshness
+          - lead_time_for_change
+          - total_incidents
+          - mean_time_to_recovery
+          - snyk_code_projects
+          - snyk_open_source_projects
+          - open_critical_vulnerabilities
+          - open_high_vulnerabilities
+          - open_medium_vulnerabilities
+          - open_low_vulnerabilities
+          - gitlab_lead_time_for_change
+          - ado_lead_time_for_change
+          - fixes_in_the_last_30_days
+          - resolved_in_last_30_days
+          - hasReadme
+          - fressnessUnderYear
+          - fressnessUnder90
+          - fressnessUnder30
+          - hasTeam
+          - branchProtection
+          - noOpenCritical
+          - has_snyk_code
+          - has_snyk_open_source
+          - noOpenSnyk
+          - someResolvedIssues
+          - someFixedIssues
+          - ownerProtection
+          - noOpenCriticalIssues
+          - lessThen5bugs
+          - lessThen5codesmells
+          - scanedLastMonth
+          - connectedToSonar
+          - scorecardsStats
+          - sonar_project
+          - azureDevopsRepository
+          - _opsGenieService
+          - snyk_target
+          - pager_duty_service
+          - git_lab_repositry
+          - bitbucketRepository
+          - repository
+          shown:
+          - $team
+          - $title
+          - ProductionReadinessA
+          - security-maturity
+          - ProductionReadiness
+          - ProductionReadinessGithubOcean
+          - ProductionReadinessB
+          - quality_maturity
+          - ProductionReadinessG
+    id: x3JYem3fDOFx0YDg
+  - type: table-entities-explorer
+    blueprint: service
+    displayMode: widget
+    title: Enforce production readiness
+    excludedFields: []
+    description: Ensure all services meet production standards and are deployment-ready
+    icon: Table
+    dataset:
+      combinator: and
+      rules:
+      - operator: '='
+        value: service
+        property: $blueprint
+    blueprintConfig:
+      service:
+        filterSettings:
+          filterBy:
+            combinator: and
+            rules: []
+        groupSettings:
+          groupBy: []
+        sortSettings:
+          sortBy: []
+        propertiesSettings:
+          order: []
+          shown:
+          - $title
+          - readme
+          - gitlab_readme
+          - azureDevopsReadme
+          - bitbucketReadme
+          - ProductionReadinessA
+          - ProductionReadiness
+          - ProductionReadinessGithubOcean
+          - ProductionReadinessB
+          - ProductionReadinessG
+          - hasReadme
+          - fressnessUnderYear
+          - fressnessUnder90
+          - fressnessUnder30
+          - hasTeam
+          - branchProtection
+          - ownerProtection
+    id: G3GQv2DWEGlroaTO
+locked: false

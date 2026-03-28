@@ -20,10 +20,12 @@ STATE_FILENAME = ".portctl-state.yaml"
 def _make_mock_client(
     blueprints: list[dict[str, Any]] | None = None,
     scorecards: dict[str, list[dict[str, Any]]] | None = None,
+    pages: list[dict[str, Any]] | None = None,
 ) -> MagicMock:
     """Create a mock PortClient with predefined responses."""
     client = MagicMock()
     client.get_blueprints = AsyncMock(return_value=blueprints or [])
+    client.get_pages = AsyncMock(return_value=pages or [])
 
     _scorecards = scorecards or {}
 
@@ -31,6 +33,8 @@ def _make_mock_client(
         return _scorecards.get(blueprint_id, [])
 
     client.get_scorecards = AsyncMock(side_effect=_get_scorecards)
+
+    client.get_actions = AsyncMock(return_value=[])
     return client
 
 

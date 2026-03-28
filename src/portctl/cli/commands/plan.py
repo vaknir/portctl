@@ -20,13 +20,17 @@ console = Console()
 def diff_command(
     org: Optional[str] = typer.Argument(  # noqa: UP007, UP045
         None,
-        help="Organization to plan against. Uses default org if not specified.",
+        help="Source org (or only org for local diff). Uses default org if not specified.",
+    ),
+    target_org: Optional[str] = typer.Argument(  # noqa: UP007, UP045
+        None,
+        help="Target org for cross-org comparison. If provided, compares two live orgs directly.",
     ),
     resource: Optional[str] = typer.Option(  # noqa: UP007, UP045
         None,
         "--resource",
         "-r",
-        help="Filter by resource type (blueprints, scorecards).",
+        help="Filter by resource type (blueprints, scorecards, actions, pages).",
     ),
     json_output: bool = typer.Option(
         False,
@@ -34,15 +38,34 @@ def diff_command(
         help="Output plan as JSON for machine consumption.",
     ),
 ) -> None:
-    """Show a dry-run diff of local YAML vs live Port.io config."""
+    """Show a dry-run diff of local YAML vs live Port.io config.
+
+    When two org names are provided, performs a cross-org comparison between
+    two live Port.io orgs instead of a local-vs-remote diff.
+    """
     from portctl.cli.guard import require_config
 
     config = require_config()
+
+    if target_org is not None:
+        # Cross-org diff mode: compare two live orgs
+        source_name = org or config.default_org
+        if source_name is None:
+            console.print("[red]No source org specified and no default_org set.[/red]")
+            raise typer.Exit(code=1)
+        if not json_output:
+            console.print(f"[dim]Comparing {source_name} vs {target_org}...[/dim]")
+        try:
+            asyncio.run(_cross_org_diff_run(source_name, target_org, resource, json_output, config))
+        except PortctlError as exc:
+            console.print(f"[red]Error: {exc}[/red]")
+            raise typer.Exit(code=1) from None
+        return
+
+    # Local-vs-remote diff mode (original behaviour)
     org_name = org or config.default_org
     if org_name is None:
-        console.print(
-            "[red]No default org set. Specify an org or set default_org in config.[/red]"
-        )
+        console.print("[red]No default org set. Specify an org or set default_org in config.[/red]")
         raise typer.Exit(code=1)
     if not json_output:
         console.print(f"[dim]Running diff on {org_name}...[/dim]")
@@ -89,5 +112,56 @@ async def _plan_run(
     # Exit code: 0 if no changes, 2 if changes exist
     if result.validation_result is not None and result.validation_result.has_errors:
         raise typer.Exit(code=1)
+    if result.has_changes:
+        raise typer.Exit(code=2)
+
+
+async def _cross_org_diff_run(
+    source_org: str,
+    target_org: str,
+    resource: str | None,
+    json_output: bool,
+    config: PortctlConfig,
+) -> None:
+    """Async implementation of the cross-org diff command.
+
+    Args:
+        source_org: Source organization alias from config.
+        target_org: Target organization alias from config.
+        resource: Optional resource type filter.
+        json_output: Whether to output as JSON.
+        config: Validated portctl configuration.
+    """
+    from portctl.cli.formatters.diffs import format_cross_org_diff, format_cross_org_diff_json
+    from portctl.client.port_client import PortClient
+    from portctl.services.auth import resolve_credentials
+    from portctl.services.config import get_org
+    from portctl.services.differ import diff_orgs
+
+    source_config = get_org(config, source_org)
+    target_config = get_org(config, target_org)
+    source_id, source_secret = resolve_credentials(source_org, config)
+    target_id, target_secret = resolve_credentials(target_org, config)
+
+    with console.status("[blue]Fetching resources from both orgs...[/blue]"):
+        async with (
+            PortClient(
+                client_id=source_id,
+                client_secret=source_secret,
+                api_base=source_config.api_url,
+            ) as source_client,
+            PortClient(
+                client_id=target_id,
+                client_secret=target_secret,
+                api_base=target_config.api_url,
+            ) as target_client,
+        ):
+            result = await diff_orgs(source_client, target_client, resource_filter=resource)
+
+    if json_output:
+        format_cross_org_diff_json(result, source_org, target_org, console)
+    else:
+        format_cross_org_diff(result, source_org, target_org, console)
+
     if result.has_changes:
         raise typer.Exit(code=2)

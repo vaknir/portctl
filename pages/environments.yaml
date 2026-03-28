@@ -1,0 +1,21 @@
+identifier: environments
+title: Environments
+type: blueprint-entities
+icon: Environment
+description: Register environments manually by clicking " + Environment ", or set up [automatic 
+  discovery](/set_up_automatic_discovery)
+widgets:
+- id: environment-explorer
+  type: table-entities-explorer
+  blueprint: environment
+  dataset:
+    combinator: and
+    rules: []
+  blueprintConfig:
+    environment:
+      groupSettings:
+        groupBy: []
+      propertiesSettings:
+        order: []
+locked: false
+parent: manage_service_catalog

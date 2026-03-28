@@ -30,8 +30,7 @@ def _render_welcome_banner(con: Console) -> None:
     con.print()
     con.print(
         Panel(
-            "[bold]Welcome to portctl![/bold]\n"
-            "GitOps CLI for your developer portal",
+            "[bold]Welcome to portctl![/bold]\nGitOps CLI for your developer portal",
             border_style="blue",
         )
     )

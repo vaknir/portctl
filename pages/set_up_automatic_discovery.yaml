@@ -1,0 +1,30 @@
+identifier: set_up_automatic_discovery
+title: Set up automatic discovery
+type: dashboard
+icon: Plug
+description: Manage your service catalog automatically
+widgets:
+- id: 7b888abd-40c0-4495-9cda-287518dfa147
+  type: dashboard-widget
+  layout:
+  - height: 400
+    columns:
+    - id: P03LYe8NTxOcHhmx
+      size: 12
+  widgets:
+  - title: Automatic discovery
+    markdown: "The previous steps introduced the service catalog and provided a way to manually register resources.\n\nNow
+      let's see how to automate this process, allowing you to **create** and **update** assets in your service catalog in
+      real time.\n\n<br/>\nThe following guide contains recommended methods and examples of automatic discovery:\n<br/><br/>\n\
+      \n<a href=\"https://docs.port.io/getting-started/set-up-automatic-discovery\" target=\"_blank\" style=\"\n  display:
+      flex;\n  height: 36px;\n  min-width: 180px;\n  max-width: 300px;\n  width: fit-content;\n  padding: 0px 12px;\n  justify-content:
+      center;\n  align-items: center;\n  gap: 4px;\n  background-color: #4FCD44;\n  color: white;\n  text-decoration: none;\n\
+      \  border-radius: 8px;\n  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;\n\
+      \  font-size: 14px;\n  font-weight: 500;\n  cursor: pointer;\n  transition: all 0.3s ease;\n\" onmouseover=\"this.style.backgroundColor='#333'\"\
+      \ onmouseout=\"this.style.backgroundColor='#1a1a1a'\">\n  <span>Set up automatic discovery</span>\n</a>"
+    type: markdown
+    description: ''
+    icon: Docs
+    id: P03LYe8NTxOcHhmx
+locked: false
+parent: manage_service_catalog
