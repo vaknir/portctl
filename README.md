@@ -172,4 +172,4 @@ See [docs/contributing.md](docs/contributing.md) for development guidelines, cod
 
 ## License
 
-MIT
+Apache License 2.0 -- see [LICENSE](LICENSE) for details.
