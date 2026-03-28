@@ -118,6 +118,7 @@ app.command(name="diff", rich_help_panel="Workflow")(diff_command)
 app.command(name="push", rich_help_panel="Workflow")(push_command)
 app.command(name="validate", rich_help_panel="Workflow")(validate_command)
 app.command(name="audit", rich_help_panel="Workflow")(audit_command)
+app.command(name="rollback", rich_help_panel="Workflow")(rollback_command)
 
 # -- Utilities --
 app.command(name="whoami", rich_help_panel="Utilities")(whoami)
@@ -129,7 +130,6 @@ app.add_typer(
 )
 app.command(name="seed", rich_help_panel="Utilities")(seed_command)
 app.command(name="history", rich_help_panel="Utilities")(history_command)
-app.command(name="rollback", rich_help_panel="Workflow")(rollback_command)
 
 
 def main() -> None:
