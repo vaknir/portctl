@@ -11,10 +11,9 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  quality:
-    name: Quality Gate
+  lint:
+    name: Lint & Format
     runs-on: ubuntu-latest
-
     steps:
       - uses: actions/checkout@v5
 
@@ -34,21 +33,106 @@ jobs:
       - name: Install dependencies
         run: uv sync --all-extras --dev
 
-      - name: Lint
+      - name: Ruff lint
         run: uv run ruff check src/ tests/
 
-      - name: Format check
+      - name: Ruff format check
         run: uv run ruff format --check src/ tests/
 
       - name: Type check
         run: uv run mypy src/portctl/
 
+  test:
+    name: Tests (Python ${{ matrix.python-version }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.11", "3.12", "3.13"]
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - uses: astral-sh/setup-uv@v6
+
+      - name: Cache dependencies
+        uses: actions/cache@v5
+        with:
+          path: ~/.cache/uv
+          key: uv-${{ runner.os }}-py${{ matrix.python-version }}-${{ hashFiles('uv.lock') }}
+          restore-keys: uv-${{ runner.os }}-py${{ matrix.python-version }}-
+
+      - name: Install dependencies
+        run: uv sync --all-extras --dev
+
       - name: Unit tests
-        run: uv run pytest tests/unit/ -x --tb=short --cov=src/portctl --cov-report=xml
+        run: uv run pytest tests/unit/ -x --tb=short --cov=src/portctl --cov-report=xml --cov-report=term-missing
 
       - name: Upload coverage
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        if: matrix.python-version == '3.11' && github.event_name == 'push' && github.ref == 'refs/heads/main'
         uses: codecov/codecov-action@v5
         with:
           file: ./coverage.xml
           fail_ci_if_error: false
+
+  security:
+    name: Security Scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - uses: astral-sh/setup-uv@v6
+
+      - name: Cache dependencies
+        uses: actions/cache@v5
+        with:
+          path: ~/.cache/uv
+          key: uv-${{ runner.os }}-${{ hashFiles('uv.lock') }}
+          restore-keys: uv-${{ runner.os }}-
+
+      - name: Install dependencies
+        run: uv sync --all-extras --dev
+
+      - name: Dependency audit (pip-audit)
+        run: |
+          uv pip install pip-audit
+          uv run pip-audit --strict --desc
+
+      - name: Security linting (bandit)
+        run: |
+          uv pip install bandit[toml]
+          uv run bandit -r src/portctl/ -c pyproject.toml || uv run bandit -r src/portctl/ -ll
+
+      - name: Check for secrets (trufflehog)
+        uses: trufflesecurity/trufflehog@main
+        with:
+          extra_args: --only-verified
+
+  pr-gate:
+    name: PR Gate
+    if: always()
+    needs: [lint, test, security]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check job results
+        run: |
+          if [[ "${{ needs.lint.result }}" != "success" ]]; then
+            echo "Lint job failed"
+            exit 1
+          fi
+          if [[ "${{ needs.test.result }}" != "success" ]]; then
+            echo "Test job failed"
+            exit 1
+          fi
+          if [[ "${{ needs.security.result }}" != "success" ]]; then
+            echo "Security job failed"
+            exit 1
+          fi
+          echo "All checks passed!"
