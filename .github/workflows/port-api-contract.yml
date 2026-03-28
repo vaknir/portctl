@@ -44,6 +44,16 @@ jobs:
       - name: Install dependencies
         run: uv sync --all-extras --dev
 
+      - name: Verify Port credentials are configured
+        env:
+          PORT_CLIENT_ID: ${{ secrets.PORT_CLIENT_ID }}
+          PORT_CLIENT_SECRET: ${{ secrets.PORT_CLIENT_SECRET }}
+        run: |
+          if [ -z "$PORT_CLIENT_ID" ] || [ -z "$PORT_CLIENT_SECRET" ]; then
+            echo "::error::PORT_CLIENT_ID and PORT_CLIENT_SECRET secrets must be configured"
+            exit 1
+          fi
+
       - name: Run Port API contract tests
         env:
           PORT_CLIENT_ID: ${{ secrets.PORT_CLIENT_ID }}
