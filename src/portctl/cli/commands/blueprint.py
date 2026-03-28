@@ -48,7 +48,6 @@ def _fetch_blueprints(org: str | None) -> list[dict[str, str]]:
     return asyncio.run(_fetch())
 
 
-
 @app.command()
 def show(
     identifier: Optional[str] = typer.Argument(  # noqa: UP007, UP045

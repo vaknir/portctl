@@ -45,16 +45,12 @@ class _VerboseGroup(TyperGroup):
             portctl_logger = logging.getLogger("portctl")
             portctl_logger.setLevel(logging.DEBUG)
             handler = logging.StreamHandler()
-            handler.setFormatter(
-                logging.Formatter("\033[2m%(name)s\033[0m %(message)s")
-            )
+            handler.setFormatter(logging.Formatter("\033[2m%(name)s\033[0m %(message)s"))
             portctl_logger.addHandler(handler)
             # Show httpx request summaries but not httpcore wire-level noise
             logging.getLogger("httpx").setLevel(logging.INFO)
             httpx_handler = logging.StreamHandler()
-            httpx_handler.setFormatter(
-                logging.Formatter("\033[2m%(message)s\033[0m")
-            )
+            httpx_handler.setFormatter(logging.Formatter("\033[2m%(message)s\033[0m"))
             logging.getLogger("httpx").addHandler(httpx_handler)
             logging.getLogger("httpcore").setLevel(logging.WARNING)
             ctx.params["verbose"] = True
