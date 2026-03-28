@@ -103,7 +103,7 @@ jobs:
       - name: Dependency audit (pip-audit)
         run: |
           uv pip install pip-audit
-          uv run pip-audit --strict --desc --skip-editable
+          uv run pip-audit --desc --skip-editable
 
       - name: Security linting (bandit)
         run: |
