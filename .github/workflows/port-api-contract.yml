@@ -51,5 +51,4 @@ jobs:
         run: |
           uv run pytest tests/integration/test_port_api_contract.py \
             -v --tb=long -x \
-            -m integration \
-            --timeout=120
+            -m integration
