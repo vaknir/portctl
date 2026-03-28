@@ -317,7 +317,12 @@ async def init_project(options: InitOptions) -> InitResult:
         ) as client:
             summary = await export_all(client, options.project_dir)
 
-        exported_resources = sum(summary.values())
+        exported_resources = (
+            summary.blueprint_count
+            + summary.scorecard_count
+            + summary.action_count
+            + summary.page_count
+        )
 
     return InitResult(
         config_path=cfg_path,

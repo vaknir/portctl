@@ -161,8 +161,8 @@ class TestSeedDemoData:
         # 4 blueprints + 3 scorecards + entities = total progress calls
         expected = len(BLUEPRINTS) + len(SCORECARDS) + _TOTAL_ENTITIES
         assert len(progress_calls) == expected
-        assert progress_calls[0] == ("blueprints", "environment", "")
-        assert progress_calls[4] == ("scorecards", "production-readiness", "")
+        assert progress_calls[0] == ("blueprints", "environment", "created")
+        assert progress_calls[4] == ("scorecards", "production-readiness", "created")
 
     async def test_idempotent_upsert(self) -> None:
         """Running seed twice calls upsert (not create), so it doesn't fail."""

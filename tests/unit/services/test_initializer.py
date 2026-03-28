@@ -185,7 +185,14 @@ class TestInitProject:
             config_dir=config_dir,
         )
 
-        mock_export = AsyncMock(return_value={"blueprints": 3, "scorecards": 2})
+        from portctl.services.exporter import ExportResult
+
+        mock_export = AsyncMock(
+            return_value=ExportResult(
+                blueprint_ids=["a", "b", "c"],
+                scorecard_ids=["x", "y"],
+            )
+        )
 
         # Build a mock that works as: async with PortClient(...) as client
         mock_client_instance = AsyncMock()

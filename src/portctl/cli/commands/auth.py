@@ -58,7 +58,7 @@ def login(
         except ConfigError as exc:
             console.print(f"[red]{exc}[/red]")
             raise typer.Exit(code=1) from None
-        org_name = org if org is not None else config.default_org
+        org_name = org if org is not None else config.default_org  # type: ignore[assignment]
         if org_name is None:
             console.print("[red]No default org set. Specify --org.[/red]")
             raise typer.Exit(code=1)
@@ -104,7 +104,7 @@ def status(
     except ConfigError as exc:
         console.print(f"[red]{exc}[/red]")
         raise typer.Exit(code=1) from None
-    org_name: str = org if org is not None else config.default_org
+    org_name = org if org is not None else config.default_org
     if org_name is None:
         console.print("[red]No default org set. Specify --org.[/red]")
         raise typer.Exit(code=1)

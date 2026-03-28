@@ -1280,13 +1280,13 @@ async def seed_demo_data(
     # 1. Blueprints
     for bp in BLUEPRINTS:
         await client.upsert_blueprint(bp)
-        progress("blueprints", bp["identifier"])
+        progress("blueprints", bp["identifier"], "created")
         result.blueprints_created += 1
 
     # 2. Scorecards
     for bp_id, sc in SCORECARDS:
         await client.upsert_scorecard(bp_id, sc)
-        progress("scorecards", sc["identifier"])
+        progress("scorecards", sc["identifier"], "created")
         result.scorecards_created += 1
 
     # 3. Entities -- dependency order: independent first, then dependents
@@ -1382,19 +1382,19 @@ async def cleanup_demo_data(
             if await _safe_delete_entity(client, bp_id, entity["identifier"]):
                 count += 1
                 deleted += 1
-        progress(step_name, str(count))
+        progress(step_name, str(count), "deleted")
 
     # 2. Scorecards
     for bp_id, sc in SCORECARDS:
         if await _safe_delete_scorecard(client, bp_id, sc["identifier"]):
             deleted += 1
-            progress("scorecards", sc["identifier"])
+            progress("scorecards", sc["identifier"], "deleted")
 
     # 3. Blueprints -- reverse order
     for bp in reversed(BLUEPRINTS):
         if await _safe_delete_blueprint(client, bp["identifier"]):
             deleted += 1
-            progress("blueprints", bp["identifier"])
+            progress("blueprints", bp["identifier"], "deleted")
 
     return deleted
 

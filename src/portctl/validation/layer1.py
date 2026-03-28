@@ -161,8 +161,8 @@ def validate_scorecard_level_refs(file_path: Path, data: dict) -> list[Validatio
     if not isinstance(levels, list):
         return issues
 
-    level_titles = {
-        lvl.get("title") for lvl in levels if isinstance(lvl, dict) and lvl.get("title") is not None
+    level_titles: set[str] = {
+        lvl["title"] for lvl in levels if isinstance(lvl, dict) and lvl.get("title") is not None
     }
 
     rules = data.get("rules", [])
