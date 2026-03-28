@@ -10,6 +10,7 @@ import httpx
 
 from portctl.client.auth import TokenManager
 from portctl.client.endpoints import (
+    ACTION_BY_ID,
     ACTIONS,
     BLUEPRINT_BY_ID,
     BLUEPRINTS,
@@ -18,6 +19,7 @@ from portctl.client.endpoints import (
     INTEGRATION_LOGS,
     INTEGRATIONS,
     ME,
+    PAGE_BY_ID,
     PAGES,
     PORT_API_BASE_URL,
     SCORECARD_BY_ID,
@@ -53,9 +55,7 @@ class PortClient:
         api_base: str = PORT_API_BASE_URL,
         transport: httpx.BaseTransport | None = None,
     ) -> None:
-        self._token_manager = TokenManager(
-            client_id, client_secret, api_base, transport=transport
-        )
+        self._token_manager = TokenManager(client_id, client_secret, api_base, transport=transport)
         client_kwargs: dict[str, Any] = {
             "base_url": api_base,
             "timeout": httpx.Timeout(30.0, read=60.0),
@@ -103,9 +103,7 @@ class PortClient:
         retries_5xx = 0
 
         while True:
-            response = await self._client.request(
-                method, path, headers=headers, **kwargs
-            )
+            response = await self._client.request(method, path, headers=headers, **kwargs)
 
             if response.status_code == 429 and retries_429 < _MAX_RETRIES_429:
                 retries_429 += 1
@@ -219,9 +217,7 @@ class PortClient:
         data = await self._request("GET", path)
         return data.get("scorecards", [])  # type: ignore[no-any-return]
 
-    async def upsert_scorecard(
-        self, blueprint_id: str, data: dict[str, Any]
-    ) -> dict[str, Any]:
+    async def upsert_scorecard(self, blueprint_id: str, data: dict[str, Any]) -> dict[str, Any]:
         """Create or update a scorecard.
 
         Tries POST (create) first, falls back to PUT (update) on 409 conflict.
@@ -240,9 +236,7 @@ class PortClient:
             return response.get("scorecard", {})  # type: ignore[no-any-return]
         except PortAPIError as exc:
             if exc.status_code == 409:
-                path = SCORECARD_BY_ID.format(
-                    blueprint_id=blueprint_id, identifier=identifier
-                )
+                path = SCORECARD_BY_ID.format(blueprint_id=blueprint_id, identifier=identifier)
                 response = await self._request("PUT", path, json=data)
                 return response.get("scorecard", {})  # type: ignore[no-any-return]
             raise
@@ -259,18 +253,45 @@ class PortClient:
 
     # ── Action operations ───────────────────────────────────────────
 
-    async def get_actions(self, blueprint_id: str) -> list[dict[str, Any]]:
-        """Get all actions for a blueprint.
-
-        Args:
-            blueprint_id: Blueprint identifier.
+    async def get_actions(self) -> list[dict[str, Any]]:
+        """Get all actions.
 
         Returns:
             List of action dictionaries.
         """
-        path = ACTIONS.format(blueprint_id=blueprint_id)
-        data = await self._request("GET", path)
+        data = await self._request("GET", ACTIONS)
         return data.get("actions", [])  # type: ignore[no-any-return]
+
+    async def upsert_action(self, data: dict[str, Any]) -> dict[str, Any]:
+        """Create or update an action.
+
+        Tries POST (create) first, falls back to PUT (update) on 409 conflict.
+
+        Args:
+            data: Action data including 'identifier'.
+
+        Returns:
+            The upserted action dictionary.
+        """
+        identifier = data["identifier"]
+        try:
+            response = await self._request("POST", ACTIONS, json=data)
+            return response.get("action", {})  # type: ignore[no-any-return]
+        except PortAPIError as exc:
+            if exc.status_code == 409:
+                path = ACTION_BY_ID.format(identifier=identifier)
+                response = await self._request("PUT", path, json=data)
+                return response.get("action", {})  # type: ignore[no-any-return]
+            raise
+
+    async def delete_action(self, identifier: str) -> None:
+        """Delete an action.
+
+        Args:
+            identifier: Action identifier to delete.
+        """
+        path = ACTION_BY_ID.format(identifier=identifier)
+        await self._request("DELETE", path)
 
     # ── Page operations ─────────────────────────────────────────────
 
@@ -282,6 +303,37 @@ class PortClient:
         """
         data = await self._request("GET", PAGES)
         return data.get("pages", [])  # type: ignore[no-any-return]
+
+    async def upsert_page(self, data: dict[str, Any]) -> dict[str, Any]:
+        """Create or update a page.
+
+        Tries POST (create) first, falls back to PUT (update) on 409 conflict.
+
+        Args:
+            data: Page data including 'identifier'.
+
+        Returns:
+            The upserted page dictionary.
+        """
+        identifier = data["identifier"]
+        try:
+            response = await self._request("POST", PAGES, json=data)
+            return response.get("page", {})  # type: ignore[no-any-return]
+        except PortAPIError as exc:
+            if exc.status_code == 409:
+                path = PAGE_BY_ID.format(identifier=identifier)
+                response = await self._request("PUT", path, json=data)
+                return response.get("page", {})  # type: ignore[no-any-return]
+            raise
+
+    async def delete_page(self, identifier: str) -> None:
+        """Delete a page by identifier.
+
+        Args:
+            identifier: Page identifier to delete.
+        """
+        path = PAGE_BY_ID.format(identifier=identifier)
+        await self._request("DELETE", path)
 
     # ── Entity operations ───────────────────────────────────────────
 
@@ -298,9 +350,7 @@ class PortClient:
         data = await self._request("GET", path)
         return data.get("entities", [])  # type: ignore[no-any-return]
 
-    async def upsert_entity(
-        self, blueprint_id: str, data: dict[str, Any]
-    ) -> dict[str, Any]:
+    async def upsert_entity(self, blueprint_id: str, data: dict[str, Any]) -> dict[str, Any]:
         """Create or update an entity.
 
         Uses POST with upsert=true to handle both create and update.
@@ -313,9 +363,7 @@ class PortClient:
             The upserted entity dictionary.
         """
         path = ENTITIES.format(blueprint_id=blueprint_id)
-        response = await self._request(
-            "POST", path, json=data, params={"upsert": "true"}
-        )
+        response = await self._request("POST", path, json=data, params={"upsert": "true"})
         return response.get("entity", {})  # type: ignore[no-any-return]
 
     async def delete_entity(self, blueprint_id: str, identifier: str) -> None:

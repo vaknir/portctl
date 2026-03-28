@@ -1,0 +1,39 @@
+identifier: set_jira_issue_user_relations
+title: Set Jira Issue User relations
+blueprint: ''
+trigger:
+  type: automation
+  event:
+    type: ANY_ENTITY_CHANGE
+    blueprintIdentifier: _user
+  condition:
+    type: JQ
+    expressions:
+    - .diff.before.relations.jira_user != .diff.after.relations.jira_user
+    - .diff.after.relations.jira_user != null
+    combinator: and
+invocation_method:
+  type: WEBHOOK
+  url: https://api.getport.io/v1/migrations
+  agent: false
+  synchronized: true
+  method: POST
+  headers:
+    RUN_ID: '{{ .run.id }}'
+    Content-Type: application/json
+  body:
+    sourceBlueprint: jiraIssue
+    mapping:
+      blueprint: jiraIssue
+      filter: '"{{ .event.diff.after.relations.jira_user }}" as $item | ($item == .relations.jira_user_reporter) or (.relations.jira_user_assignee
+        == $item)'
+      entity:
+        identifier: .identifier
+        relations:
+          reporter: if "{{ .event.diff.after.relations.jira_user }}" == .relations.jira_user_reporter then "{{ 
+            .event.context.entityIdentifier }}" else .relations.reporter end
+          assignee: if "{{ .event.diff.after.relations.jira_user }}" == .relations.jira_user_assignee then "{{ 
+            .event.context.entityIdentifier }}" else .relations.assignee end
+user_properties: {}
+description: Set relations between Jira Issues and User
+required_approval: false

@@ -1,0 +1,19 @@
+identifier: githubRepositories
+title: Repositories
+type: blueprint-entities
+icon: Github
+widgets:
+- id: githubRepository-explorer
+  type: table-entities-explorer
+  blueprint: githubRepository
+  dataset:
+    combinator: and
+    rules: []
+  blueprintConfig:
+    githubRepository:
+      groupSettings:
+        groupBy: []
+      propertiesSettings:
+        order: []
+locked: false
+parent: catalog_tables

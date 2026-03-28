@@ -19,15 +19,15 @@ console = Console()
 
 
 def _has_local_files(config_dir: Path) -> bool:
-    """Check if local blueprint/scorecard YAML files already exist.
+    """Check if local resource YAML files already exist.
 
     Args:
-        config_dir: Root directory containing blueprints/ and scorecards/.
+        config_dir: Root directory containing blueprints/, scorecards/, etc.
 
     Returns:
         True if any YAML files exist that would be overwritten.
     """
-    for subdir in ("blueprints", "scorecards"):
+    for subdir in ("blueprints", "scorecards", "actions", "pages"):
         target = config_dir / subdir
         if target.is_dir() and any(target.glob("*.yaml")):
             return True
@@ -59,17 +59,13 @@ def pull_command(
     config = require_config()
     org_name = org or config.default_org
     if org_name is None:
-        console.print(
-            "[red]No default org set. Specify an org or set default_org in config.[/red]"
-        )
+        console.print("[red]No default org set. Specify an org or set default_org in config.[/red]")
         raise typer.Exit(code=1)
     console.print(f"[dim]Pulling from {org_name}...[/dim]")
     try:
         # Check for local changes that would be overwritten
         if _has_local_files(output_dir):
-            plan = asyncio.run(
-                _check_for_diff(org_name, resource, output_dir, config)
-            )
+            plan = asyncio.run(_check_for_diff(org_name, resource, output_dir, config))
             if plan.has_changes:
                 from portctl.cli.formatters.diffs import format_plan
 
@@ -166,6 +162,10 @@ async def _export_run(
         changes.append(
             ResourceEntry(resource_type="scorecard", identifier=sc_id, action="imported")
         )
+    for ac_id in result.action_ids:
+        changes.append(ResourceEntry(resource_type="action", identifier=ac_id, action="imported"))
+    for pg_id in result.page_ids:
+        changes.append(ResourceEntry(resource_type="page", identifier=pg_id, action="imported"))
 
     applied_by = os.environ.get("USER", os.environ.get("CI_ACTOR", "unknown"))
     entry = ExportStateEntry(
@@ -181,6 +181,9 @@ async def _export_run(
 
     bp_count = result.blueprint_count
     sc_count = result.scorecard_count
+    ac_count = result.action_count
+    pg_count = result.page_count
     console.print(
-        f"[green]Pulled {bp_count} blueprint(s), {sc_count} scorecard(s)[/green]"
+        f"[green]Pulled {bp_count} blueprint(s), {sc_count} scorecard(s), "
+        f"{ac_count} action(s), {pg_count} page(s)[/green]"
     )

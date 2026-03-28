@@ -79,8 +79,7 @@ def load_config(path: Path | None = None) -> PortctlConfig:
 
     if not config_path.exists():
         raise ConfigError(
-            f"Config file not found: {config_path}. "
-            f"Run 'portctl org add' to create one."
+            f"Config file not found: {config_path}. Run 'portctl org add' to create one."
         )
 
     raw_text = config_path.read_text(encoding="utf-8")
@@ -88,9 +87,7 @@ def load_config(path: Path | None = None) -> PortctlConfig:
     try:
         raw_data = yaml.safe_load(raw_text)
     except yaml.YAMLError as exc:
-        raise ConfigError(
-            f"Invalid YAML in {config_path}: {exc}"
-        ) from exc
+        raise ConfigError(f"Invalid YAML in {config_path}: {exc}") from exc
 
     if not isinstance(raw_data, dict):
         raise ConfigError(
@@ -103,9 +100,7 @@ def load_config(path: Path | None = None) -> PortctlConfig:
     try:
         return PortctlConfig.model_validate(resolved_data)
     except ValidationError as exc:
-        raise ConfigError(
-            f"Invalid configuration in {config_path}: {exc}"
-        ) from exc
+        raise ConfigError(f"Invalid configuration in {config_path}: {exc}") from exc
 
 
 def save_config(config: PortctlConfig, path: Path | None = None) -> None:
@@ -208,16 +203,14 @@ def get_org(config: PortctlConfig, name: str | None = None) -> OrgConfig:
     if name is None:
         if config.default_org is None:
             raise ConfigError(
-                "No default organization set. "
-                "Specify --org or set 'default_org' in config."
+                "No default organization set. Specify --org or set 'default_org' in config."
             )
         name = config.default_org
 
     if name not in config.orgs:
         available = ", ".join(sorted(config.orgs.keys()))
         raise ConfigError(
-            f"Organization '{name}' not found in config. "
-            f"Available: {available or '(none)'}"
+            f"Organization '{name}' not found in config. Available: {available or '(none)'}"
         )
 
     return config.orgs[name]

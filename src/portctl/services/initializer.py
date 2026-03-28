@@ -68,9 +68,7 @@ def _templates_package() -> importlib.resources.abc.Traversable:
     return importlib.resources.files("portctl.services") / "templates"
 
 
-def write_config_file(
-    config_dir: Path, org_name: str, api_url: str, *, org_id: str = ""
-) -> Path:
+def write_config_file(config_dir: Path, org_name: str, api_url: str, *, org_id: str = "") -> Path:
     """Write ~/.portctl/config.yaml with the org entry. No credentials inline.
 
     Args:

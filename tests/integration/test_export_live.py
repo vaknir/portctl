@@ -49,12 +49,8 @@ class TestExportBlueprints:
         exported = await export_blueprints(port_client, tmp_path)
 
         for identifier in exported:
-            assert not identifier.startswith("_"), (
-                f"Internal blueprint exported: {identifier}"
-            )
-            assert not identifier.startswith("$"), (
-                f"System blueprint exported: {identifier}"
-            )
+            assert not identifier.startswith("_"), f"Internal blueprint exported: {identifier}"
+            assert not identifier.startswith("$"), f"System blueprint exported: {identifier}"
 
 
 class TestExportRoundtripStructure:

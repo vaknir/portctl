@@ -71,9 +71,7 @@ def login(
         client_secret = typer.prompt("Client Secret", hide_input=True)
 
     try:
-        user_info = asyncio.run(
-            verify_token(client_id, client_secret, api_url)
-        )
+        user_info = asyncio.run(verify_token(client_id, client_secret, api_url))
     except AuthError as exc:
         console.print(f"[red]Login failed: {exc}[/red]")
         raise typer.Exit(code=1) from None
@@ -125,15 +123,10 @@ def status(
 
     # Verify token is live
     try:
-        user_info = asyncio.run(
-            verify_token(client_id, client_secret, api_url)
-        )
+        user_info = asyncio.run(verify_token(client_id, client_secret, api_url))
     except AuthError:
         console.print(f"[bold]{org_name}[/bold]: [yellow]expired[/yellow]")
-        console.print(
-            "  Credentials found but authentication failed. "
-            "Re-run 'portctl auth login'."
-        )
+        console.print("  Credentials found but authentication failed. Re-run 'portctl auth login'.")
         raise typer.Exit(code=1) from None
 
     console.print(f"[bold]{org_name}[/bold]: [green]authenticated[/green]")

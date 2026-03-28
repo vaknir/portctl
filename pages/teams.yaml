@@ -1,0 +1,24 @@
+identifier: teams
+title: Teams
+type: blueprint-entities
+icon: Team
+widgets:
+- id: WOGbyC791wpqLCNZ
+  type: table-entities-explorer
+  blueprint: team
+  dataset:
+    combinator: and
+    rules: []
+  blueprintConfig:
+    team:
+      propertiesSettings:
+        order: []
+        shown:
+        - $identifier
+        - $updatedAt
+        - $createdAt
+        - slack_channel
+        - oncall_schedule
+        - member_count
+locked: false
+parent: catalog_tables

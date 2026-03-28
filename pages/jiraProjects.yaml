@@ -1,0 +1,19 @@
+identifier: jiraProjects
+title: Jira Projects
+type: blueprint-entities
+icon: Jira
+widgets:
+- id: jiraProject-explorer
+  type: table-entities-explorer
+  blueprint: jiraProject
+  dataset:
+    combinator: and
+    rules: []
+  blueprintConfig:
+    jiraProject:
+      groupSettings:
+        groupBy: []
+      propertiesSettings:
+        order: []
+locked: false
+parent: catalog_tables

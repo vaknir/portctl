@@ -28,9 +28,7 @@ class TestStoreCredentials:
         """Stores client_id and client_secret in OS keyring."""
         store_credentials("my-org", "cid-123", "csecret-456")
 
-        mock_keyring.set_password.assert_any_call(
-            "portctl:my-org:client_id", "portctl", "cid-123"
-        )
+        mock_keyring.set_password.assert_any_call("portctl:my-org:client_id", "portctl", "cid-123")
         mock_keyring.set_password.assert_any_call(
             "portctl:my-org:client_secret", "portctl", "csecret-456"
         )
@@ -70,12 +68,8 @@ class TestDeleteCredentials:
         """Removes client_id and client_secret from keyring."""
         delete_credentials("my-org")
 
-        mock_keyring.delete_password.assert_any_call(
-            "portctl:my-org:client_id", "portctl"
-        )
-        mock_keyring.delete_password.assert_any_call(
-            "portctl:my-org:client_secret", "portctl"
-        )
+        mock_keyring.delete_password.assert_any_call("portctl:my-org:client_id", "portctl")
+        mock_keyring.delete_password.assert_any_call("portctl:my-org:client_secret", "portctl")
         assert mock_keyring.delete_password.call_count == 2
 
 

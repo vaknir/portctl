@@ -8,6 +8,7 @@ from typing import TYPE_CHECKING, Any
 
 from ruamel.yaml import YAML
 
+from portctl.models.action import Action
 from portctl.models.blueprint import (
     Blueprint,
     BlueprintCalculationProperty,
@@ -15,6 +16,7 @@ from portctl.models.blueprint import (
     BlueprintProperty,
     BlueprintRelation,
 )
+from portctl.models.page import Page
 from portctl.models.scorecard import Scorecard
 from portctl.services.ignore import IgnoreFilter, load_ignore_filter
 
@@ -37,6 +39,8 @@ class ExportResult:
 
     blueprint_ids: list[str] = field(default_factory=list)
     scorecard_ids: list[str] = field(default_factory=list)
+    action_ids: list[str] = field(default_factory=list)
+    page_ids: list[str] = field(default_factory=list)
 
     @property
     def blueprint_count(self) -> int:
@@ -48,13 +52,28 @@ class ExportResult:
         """Number of exported scorecards."""
         return len(self.scorecard_ids)
 
+    @property
+    def action_count(self) -> int:
+        """Number of exported actions."""
+        return len(self.action_ids)
+
+    @property
+    def page_count(self) -> int:
+        """Number of exported pages."""
+        return len(self.page_ids)
+
     def to_summary(self) -> dict[str, int]:
         """Return a summary dict for backward compatibility.
 
         Returns:
-            Dict with blueprint and scorecard counts.
+            Dict with resource counts.
         """
-        return {"blueprints": self.blueprint_count, "scorecards": self.scorecard_count}
+        return {
+            "blueprints": self.blueprint_count,
+            "scorecards": self.scorecard_count,
+            "actions": self.action_count,
+            "pages": self.page_count,
+        }
 
 
 # Prefixes that indicate internal/system blueprints
@@ -130,6 +149,48 @@ def _map_scorecard(api_data: dict[str, Any]) -> Scorecard:
         A validated Scorecard model instance.
     """
     return Scorecard(**api_data)
+
+
+def _map_action(api_data: dict[str, Any]) -> Action:
+    """Map a Port API action response to the Action model.
+
+    Args:
+        api_data: Raw action dict from the Port API.
+
+    Returns:
+        A validated Action model instance.
+    """
+    return Action(
+        identifier=api_data["identifier"],
+        title=api_data.get("title", ""),
+        blueprint=api_data.get("blueprint", ""),
+        trigger=api_data.get("trigger", {}),
+        invocation_method=api_data.get("invocationMethod"),
+        user_properties=api_data.get("userInputs", {}).get("properties", {}),
+        description=api_data.get("description"),
+        required_approval=api_data.get("requiredApproval", False),
+    )
+
+
+def _map_page(api_data: dict[str, Any]) -> Page:
+    """Map a Port API page response to the Page model.
+
+    Args:
+        api_data: Raw page dict from the Port API.
+
+    Returns:
+        A validated Page model instance.
+    """
+    return Page(
+        identifier=api_data["identifier"],
+        title=api_data.get("title", ""),
+        type=api_data.get("type"),
+        icon=api_data.get("icon"),
+        description=api_data.get("description"),
+        widgets=api_data.get("widgets", []),
+        locked=api_data.get("locked", False),
+        parent=api_data.get("parent"),
+    )
 
 
 def _write_yaml(data: dict[str, Any], path: Path) -> None:
@@ -236,18 +297,105 @@ async def export_scorecards(
     return exported
 
 
+async def export_actions(
+    client: PortClient,
+    output_dir: Path,
+    ignore: IgnoreFilter | None = None,
+) -> list[str]:
+    """Export all actions to YAML files.
+
+    Fetches actions from the Port API, filters out any matched by the ignore
+    filter, maps them to the Action model, and writes each as a YAML file
+    under ``output_dir/actions/<identifier>.yaml``.
+
+    Args:
+        client: Authenticated Port API client.
+        output_dir: Root directory for exported files.
+        ignore: Optional ignore filter. Loaded from output_dir if not provided.
+
+    Returns:
+        List of exported action identifiers.
+    """
+    if ignore is None:
+        ignore = load_ignore_filter(output_dir)
+
+    exported: list[str] = []
+
+    raw_actions = await client.get_actions()
+    for raw in raw_actions:
+        action = _map_action(raw)
+        if _is_internal(action.identifier):
+            logger.debug("Skipping internal action: %s", action.identifier)
+            continue
+        if ignore.is_ignored("actions", action.identifier):
+            logger.debug("Skipping ignored action: %s", action.identifier)
+            continue
+        data = action.model_dump(exclude_none=True)
+        yaml_path = output_dir / "actions" / f"{action.identifier}.yaml"
+        _write_yaml(data, yaml_path)
+        exported.append(action.identifier)
+        logger.info("Exported action: %s", action.identifier)
+
+    return exported
+
+
+async def export_pages(
+    client: PortClient,
+    output_dir: Path,
+    ignore: IgnoreFilter | None = None,
+) -> list[str]:
+    """Export all pages to YAML files.
+
+    Fetches pages from the Port API, filters out any matched by the ignore
+    filter, maps them to the Page model, and writes each as a YAML file
+    under ``output_dir/pages/<identifier>.yaml``.
+
+    Args:
+        client: Authenticated Port API client.
+        output_dir: Root directory for exported files.
+        ignore: Optional ignore filter. Loaded from output_dir if not provided.
+
+    Returns:
+        List of exported page identifiers.
+    """
+    if ignore is None:
+        ignore = load_ignore_filter(output_dir)
+
+    raw_pages = await client.get_pages()
+    exported: list[str] = []
+
+    for raw in raw_pages:
+        identifier = raw.get("identifier", "")
+        if _is_internal(identifier):
+            logger.debug("Skipping internal page: %s", identifier)
+            continue
+        if ignore.is_ignored("pages", identifier):
+            logger.debug("Skipping ignored page: %s", identifier)
+            continue
+
+        page = _map_page(raw)
+        data = page.model_dump(exclude_none=True)
+        yaml_path = output_dir / "pages" / f"{identifier}.yaml"
+        _write_yaml(data, yaml_path)
+        exported.append(identifier)
+        logger.info("Exported page: %s", identifier)
+
+    return exported
+
+
 async def export_all(
     client: PortClient,
     output_dir: Path,
     resource: str | None = None,
 ) -> ExportResult:
-    """Orchestrate export of blueprints and scorecards.
+    """Orchestrate export of all resource types.
 
     Args:
         client: Authenticated Port API client.
         output_dir: Root directory for exported files.
-        resource: Optional filter -- ``"blueprints"`` or ``"scorecards"``
-            to export only that resource type. Exports all when ``None``.
+        resource: Optional filter -- ``"blueprints"``, ``"scorecards"``,
+            ``"actions"``, or ``"pages"`` to export only that resource type.
+            Exports all when ``None``.
 
     Returns:
         An ExportResult with exported resource identifiers and counts.
@@ -256,25 +404,35 @@ async def export_all(
     blueprint_ids: list[str] = []
     exported_blueprint_ids: list[str] = []
     exported_scorecard_ids: list[str] = []
+    exported_action_ids: list[str] = []
+    exported_page_ids: list[str] = []
 
     if resource is None or resource == "blueprints":
         blueprint_ids = await export_blueprints(client, output_dir, ignore=ignore)
         exported_blueprint_ids = blueprint_ids
 
+    # Scorecards and actions both need blueprint IDs for lookup
+    needs_blueprint_ids = resource in ("scorecards", "actions")
+    if needs_blueprint_ids and not blueprint_ids:
+        raw_blueprints = await client.get_blueprints()
+        blueprint_ids = [
+            bp["identifier"] for bp in raw_blueprints if not _is_internal(bp.get("identifier", ""))
+        ]
+
     if resource is None or resource == "scorecards":
-        # If we haven't fetched blueprint ids yet, do so for scorecard lookup
-        if not blueprint_ids and resource == "scorecards":
-            raw_blueprints = await client.get_blueprints()
-            blueprint_ids = [
-                bp["identifier"]
-                for bp in raw_blueprints
-                if not _is_internal(bp.get("identifier", ""))
-            ]
         exported_scorecard_ids = await export_scorecards(
             client, blueprint_ids, output_dir, ignore=ignore
         )
 
+    if resource is None or resource == "actions":
+        exported_action_ids = await export_actions(client, output_dir, ignore=ignore)
+
+    if resource is None or resource == "pages":
+        exported_page_ids = await export_pages(client, output_dir, ignore=ignore)
+
     return ExportResult(
         blueprint_ids=exported_blueprint_ids,
         scorecard_ids=exported_scorecard_ids,
+        action_ids=exported_action_ids,
+        page_ids=exported_page_ids,
     )

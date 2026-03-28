@@ -23,7 +23,15 @@ rules:
     conditions:
     - property: on_call
       operator: isNotEmpty
-
+- identifier: is-production-grade
+  title: Is Production Grade
+  level: Gold
+  query:
+    combinator: and
+    conditions:
+    - property: tier
+      operator: '!='
+      value: internal
 - identifier: has-service-docs
   title: Has Service Documentation
   level: Bronze

@@ -74,9 +74,7 @@ class IgnoreFilter:
 
         return result
 
-    def filter_identifiers(
-        self, resource_type: str, identifiers: list[str]
-    ) -> list[str]:
+    def filter_identifiers(self, resource_type: str, identifiers: list[str]) -> list[str]:
         """Return only non-ignored identifiers from the list.
 
         Args:
@@ -86,11 +84,7 @@ class IgnoreFilter:
         Returns:
             A new list containing only identifiers that are not ignored.
         """
-        return [
-            ident
-            for ident in identifiers
-            if not self.is_ignored(resource_type, ident)
-        ]
+        return [ident for ident in identifiers if not self.is_ignored(resource_type, ident)]
 
 
 def parse_ignore_file(content: str) -> list[IgnoreRule]:
@@ -130,9 +124,7 @@ def parse_ignore_file(content: str) -> list[IgnoreRule]:
         if "/" in line:
             resource_type, pattern = line.split("/", 1)
 
-        rules.append(
-            IgnoreRule(pattern=pattern, negated=negated, resource_type=resource_type)
-        )
+        rules.append(IgnoreRule(pattern=pattern, negated=negated, resource_type=resource_type))
 
     return rules
 

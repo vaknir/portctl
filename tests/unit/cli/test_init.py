@@ -45,9 +45,7 @@ class TestInitNonInteractive:
         result = runner.invoke(app, ["init", "--non-interactive", "--org", "my-org"])
         assert result.exit_code != 0
 
-    def test_init_non_interactive_fresh(
-        self, mock_init_result: InitResult, tmp_path: Path
-    ) -> None:
+    def test_init_non_interactive_fresh(self, mock_init_result: InitResult, tmp_path: Path) -> None:
         """Creates files without prompts in non-interactive fresh mode."""
         mock_init = AsyncMock(return_value=mock_init_result)
         with patch("portctl.cli.commands.init.init_project", mock_init):
@@ -66,9 +64,7 @@ class TestInitNonInteractive:
         assert result.exit_code == 0
         mock_init.assert_awaited_once()
 
-    def test_init_no_ci_skips_workflow(
-        self, mock_init_result: InitResult
-    ) -> None:
+    def test_init_no_ci_skips_workflow(self, mock_init_result: InitResult) -> None:
         """--no-ci flag passes generate_ci=False to init_project."""
         mock_init_result.ci_workflow_path = None
         mock_init = AsyncMock(return_value=mock_init_result)

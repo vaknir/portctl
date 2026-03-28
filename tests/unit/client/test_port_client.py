@@ -132,9 +132,7 @@ class TestPortClientBlueprints:
 
         client = _make_client(handler=handler)
         async with client:
-            result = await client.upsert_blueprint(
-                {"identifier": "service", "title": "Service"}
-            )
+            result = await client.upsert_blueprint({"identifier": "service", "title": "Service"})
         assert result == {"identifier": "service", "title": "Service"}
 
     async def test_delete_blueprint(self) -> None:
@@ -182,10 +180,7 @@ class TestPortClientScorecards:
             path = _strip_base(request.url.path)
             if path == AUTH_TOKEN:
                 return _auth_response()
-            if (
-                path == "/blueprints/service/scorecards"
-                and request.method == "POST"
-            ):
+            if path == "/blueprints/service/scorecards" and request.method == "POST":
                 return httpx.Response(
                     200,
                     json={
@@ -197,9 +192,7 @@ class TestPortClientScorecards:
 
         client = _make_client(handler=handler)
         async with client:
-            result = await client.upsert_scorecard(
-                "service", {"identifier": "prod-ready"}
-            )
+            result = await client.upsert_scorecard("service", {"identifier": "prod-ready"})
         assert result == {"identifier": "prod-ready"}
 
     async def test_delete_scorecard(self) -> None:
@@ -209,10 +202,7 @@ class TestPortClientScorecards:
             path = _strip_base(request.url.path)
             if path == AUTH_TOKEN:
                 return _auth_response()
-            if (
-                path == "/blueprints/service/scorecards/prod-ready"
-                and request.method == "DELETE"
-            ):
+            if path == "/blueprints/service/scorecards/prod-ready" and request.method == "DELETE":
                 return httpx.Response(200, json={"ok": True})
             return httpx.Response(404, json={"ok": False})
 
@@ -317,9 +307,7 @@ class TestPortClientRetry:
                 return _auth_response()
             attempt += 1
             if attempt == 1:
-                return httpx.Response(
-                    502, json={"ok": False, "message": "Bad gateway"}
-                )
+                return httpx.Response(502, json={"ok": False, "message": "Bad gateway"})
             return httpx.Response(200, json={"ok": True, "blueprints": []})
 
         client = _make_client(handler=handler)
@@ -363,24 +351,22 @@ class TestPortClientOther:
         assert result == {"name": "test-user"}
 
     async def test_get_actions(self) -> None:
-        """get_actions returns list of actions for a blueprint."""
+        """get_actions returns all actions from the top-level endpoint."""
         client = _make_client(
             {
-                "/blueprints/service/actions": {
+                "/actions": {
                     "ok": True,
                     "actions": [{"identifier": "deploy"}],
                 }
             }
         )
         async with client:
-            result = await client.get_actions("service")
+            result = await client.get_actions()
         assert result == [{"identifier": "deploy"}]
 
     async def test_get_pages(self) -> None:
         """get_pages returns list of pages."""
-        client = _make_client(
-            {"/pages": {"ok": True, "pages": [{"identifier": "home"}]}}
-        )
+        client = _make_client({"/pages": {"ok": True, "pages": [{"identifier": "home"}]}})
         async with client:
             result = await client.get_pages()
         assert result == [{"identifier": "home"}]
@@ -406,10 +392,7 @@ class TestPortClientOther:
             path = _strip_base(request.url.path)
             if path == AUTH_TOKEN:
                 return _auth_response()
-            if (
-                path == "/blueprints/service/entities"
-                and request.method == "POST"
-            ):
+            if path == "/blueprints/service/entities" and request.method == "POST":
                 return httpx.Response(
                     200,
                     json={
@@ -435,10 +418,7 @@ class TestPortClientOther:
             path = _strip_base(request.url.path)
             if path == AUTH_TOKEN:
                 return _auth_response()
-            if (
-                path == "/blueprints/service/entities/my-svc"
-                and request.method == "DELETE"
-            ):
+            if path == "/blueprints/service/entities/my-svc" and request.method == "DELETE":
                 return httpx.Response(200, json={"ok": True})
             return httpx.Response(404, json={"ok": False})
 

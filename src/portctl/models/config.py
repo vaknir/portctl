@@ -25,9 +25,5 @@ class OrgConfig(BaseModel):
 class PortctlConfig(BaseModel):
     """Root configuration file schema."""
 
-    default_org: str | None = Field(
-        default=None, description="Default organization alias"
-    )
-    orgs: dict[str, OrgConfig] = Field(
-        description="Organization configurations keyed by alias"
-    )
+    default_org: str | None = Field(default=None, description="Default organization alias")
+    orgs: dict[str, OrgConfig] = Field(description="Organization configurations keyed by alias")

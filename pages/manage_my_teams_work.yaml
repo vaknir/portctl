@@ -1,0 +1,172 @@
+identifier: manage_my_teams_work
+title: Manage my team's work
+type: dashboard
+icon: Team
+description: Track ongoing activities and focus your team on what matters to the business
+widgets:
+- id: manage_my_teams_work
+  type: dashboard-widget
+  layout:
+  - height: 400
+    columns:
+    - id: iWRkMg99kb4QCnYS
+      size: 6
+    - id: qfMYUEU7awZxzapE
+      size: 6
+  - height: 401
+    columns:
+    - id: xNLlV35mOwpNsp0V
+      size: 12
+  - height: 509
+    columns:
+    - id: O8Pkx7niBz1h9prf
+      size: 12
+  widgets:
+  - type: table-entities-explorer
+    blueprint: _team
+    displayMode: widget
+    title: My Teams
+    excludedFields: []
+    description: Make sure that you are a member of the correct teams
+    icon: Users
+    dataset:
+      combinator: and
+      rules:
+      - operator: in
+        property: $identifier
+        value:
+        - '{{getUserTeams()}}'
+      - operator: '='
+        value: _team
+        property: $blueprint
+    blueprintConfig:
+      _team:
+        filterSettings:
+          filterBy:
+            combinator: and
+            rules: []
+        groupSettings:
+          groupBy: []
+        sortSettings:
+          sortBy: []
+        propertiesSettings:
+          order: []
+          shown:
+          - $team
+          - $updatedAt
+          - $title
+          - scorecardsStats
+    id: iWRkMg99kb4QCnYS
+  - actions:
+    - action: _onboard_existing_team
+    - action: set_ownership
+    - action: _onboard_your_user
+    icon: Team
+    title: Onboard your teams
+    type: action-card-widget
+    description: Register users via the [Users page](/_users) and teams via the [Teams page](/_teams)
+    id: qfMYUEU7awZxzapE
+  - type: table-entities-explorer
+    blueprint: service
+    displayMode: widget
+    title: Track my teams' services
+    excludedFields: []
+    description: Get a macro view of services owned by your teams
+    icon: Microservice
+    dataset:
+      combinator: and
+      rules:
+      - operator: '='
+        value: service
+        property: $blueprint
+    blueprintConfig:
+      service:
+        filterSettings:
+          filterBy:
+            combinator: and
+            rules:
+            - property: $team
+              value:
+              - My Teams
+              operator: in
+        groupSettings:
+          groupBy: []
+        sortSettings:
+          sortBy: []
+        propertiesSettings:
+          order: []
+          shown:
+          - $team
+          - $title
+          - ProductionReadinessA
+          - ProductionReadinessB
+          - security-maturity
+          - ProductionReadiness
+          - ProductionReadinessGithubOcean
+          - quality_maturity
+          - ProductionReadinessG
+    id: xNLlV35mOwpNsp0V
+  - type: table-entities-explorer
+    blueprint: jiraIssue
+    displayMode: widget
+    title: What's my team working on?
+    excludedFields: []
+    description: ''
+    icon: Jira
+    dataset:
+      combinator: and
+      rules:
+      - operator: '='
+        value: jiraIssue
+        property: $blueprint
+    blueprintConfig:
+      jiraIssue:
+        filterSettings:
+          filterBy:
+            combinator: and
+            rules:
+            - property: $team
+              value:
+              - My Teams
+              operator: in
+        groupSettings:
+          groupBy: []
+        sortSettings:
+          sortBy:
+          - property: priority
+            order: desc
+        propertiesSettings:
+          order:
+          - $icon
+          - $identifier
+          - $title
+          - $updatedAt
+          - $createdAt
+          - url
+          - status
+          - issueType
+          - components
+          - creator
+          - assignee
+          - priority
+          - labels
+          - created
+          - updated
+          - resolutionDate
+          - $team
+          - handlingDuration
+          - jira_user_assignee
+          - reporter
+          - parentIssue
+          - jira_user_reporter
+          - service
+          - subtasks
+          - pull_request
+          - project
+          shown:
+          - $title
+          - url
+          - priority
+          - assignee
+    id: O8Pkx7niBz1h9prf
+locked: false

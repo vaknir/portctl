@@ -1,0 +1,137 @@
+identifier: plan_my_day
+title: 'Plan my day '
+type: dashboard
+icon: Manager
+description: All of your daily routines in one place! Track open issues, prioritize tasks, and more
+widgets:
+- id: plan_my_day_dashboard
+  type: dashboard-widget
+  layout:
+  - height: 400
+    columns:
+    - id: QJuc45JcsFySsbh0
+      size: 9
+    - id: Yy50h2nGNobNB7cz
+      size: 3
+  - height: 400
+    columns:
+    - id: vBELIVhQQFOCcd9n
+      size: 12
+  widgets:
+  - type: table-entities-explorer
+    blueprint: _user
+    displayMode: widget
+    title: Your user
+    excludedFields: []
+    description: ''
+    icon: User
+    dataset:
+      combinator: and
+      rules:
+      - operator: '='
+        property: $identifier
+        value: '{{getUserEmail()}}'
+      - operator: '='
+        value: _user
+        property: $blueprint
+    blueprintConfig:
+      _user:
+        filterSettings:
+          filterBy:
+            combinator: and
+            rules: []
+        groupSettings:
+          groupBy: []
+        sortSettings:
+          sortBy: []
+        propertiesSettings:
+          order:
+          - $icon
+          - $title
+          - $identifier
+          - $updatedAt
+          - $createdAt
+          - port_type
+          - port_role
+          - moderated_blueprints
+          - status
+          - git_hub_username
+          - pagerduty_user_id
+          - _opsGenieUserId
+          - git_lab_username
+          - _datadogUserId
+          - bitbucket_username
+          - sentry_user
+          - git_lab_user
+          - _datadogUser
+          - _opsGenieUser
+          - jira_user
+          - pagerdutyUser
+          - bit_bucket_user
+          - git_hub_user
+          - $team
+          - jira_user_id
+          shown:
+          - $identifier
+          - $team
+          - $title
+          - git_hub_username
+          - git_lab_username
+          - bitbucket_username
+          - sentry_user
+          - git_lab_user
+          - _datadogUser
+          - _opsGenieUser
+          - jira_user
+          - pagerdutyUser
+          - bit_bucket_user
+          - git_hub_user
+          - scorecardsStats
+    id: QJuc45JcsFySsbh0
+  - actions:
+    - action: _onboard_your_user
+    title: Self-service action
+    description: ''
+    icon: Bolt
+    type: action-card-widget
+    id: Yy50h2nGNobNB7cz
+  - type: table-entities-explorer
+    blueprint: jiraIssue
+    displayMode: widget
+    title: Your prioritized Jira issues
+    excludedFields: []
+    description: Review and complete tasks assigned to you
+    icon: Jira
+    dataset:
+      combinator: and
+      rules:
+      - operator: '='
+        value: jiraIssue
+        property: $blueprint
+    blueprintConfig:
+      jiraIssue:
+        filterSettings:
+          filterBy:
+            combinator: and
+            rules:
+            - property: assignee
+              value:
+              - Me
+              operator: in
+        groupSettings:
+          groupBy: []
+        sortSettings:
+          sortBy:
+          - property: priority
+            order: desc
+        propertiesSettings:
+          order: []
+          shown:
+          - $title
+          - url
+          - status
+          - issueType
+          - priority
+          - created
+    id: vBELIVhQQFOCcd9n
+locked: false

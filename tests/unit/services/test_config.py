@@ -8,7 +8,7 @@ import pytest
 import yaml
 
 from portctl.exceptions import ConfigError
-from portctl.services.config import get_org, load_config, resolve_env_vars
+from portctl.services.config import ensure_org, get_org, load_config, resolve_env_vars
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -194,3 +194,116 @@ class TestGetOrg:
         config = load_config(path=path)
         with pytest.raises(ConfigError, match="[Nn]o default"):
             get_org(config)
+
+
+class TestEnsureOrg:
+    """Tests for ensure_org function."""
+
+    def test_ensure_org_does_not_overwrite_existing_default(self, tmp_path: Path) -> None:
+        """Does not overwrite existing default_org when set_default is False."""
+        config_data = {
+            "default_org": "prod",
+            "orgs": {
+                "prod": {
+                    "name": "Production",
+                    "client_id": "prod-id",
+                    "client_secret": "prod-secret",
+                },
+            },
+        }
+        path = tmp_path / "config.yaml"
+        path.write_text(yaml.dump(config_data))
+
+        config = ensure_org("staging", path=path)
+
+        assert config.default_org == "prod"
+        assert "staging" in config.orgs
+        assert config.orgs["staging"].name == "staging"
+
+    def test_ensure_org_sets_default_when_none(self, tmp_path: Path) -> None:
+        """Sets the new org as default when no default_org is set."""
+        config_data = {
+            "orgs": {
+                "dev": {
+                    "name": "Development",
+                    "client_id": "dev-id",
+                    "client_secret": "dev-secret",
+                },
+            },
+        }
+        path = tmp_path / "config.yaml"
+        path.write_text(yaml.dump(config_data))
+
+        config = ensure_org("prod", path=path)
+
+        assert config.default_org == "prod"
+        assert "prod" in config.orgs
+
+    def test_ensure_org_set_default_flag_overrides(self, tmp_path: Path) -> None:
+        """Overrides existing default_org when set_default=True."""
+        config_data = {
+            "default_org": "prod",
+            "orgs": {
+                "prod": {
+                    "name": "Production",
+                    "client_id": "prod-id",
+                    "client_secret": "prod-secret",
+                },
+            },
+        }
+        path = tmp_path / "config.yaml"
+        path.write_text(yaml.dump(config_data))
+
+        config = ensure_org("staging", set_default=True, path=path)
+
+        assert config.default_org == "staging"
+        assert "staging" in config.orgs
+        assert "prod" in config.orgs
+
+    def test_ensure_org_adds_new_org(self, tmp_path: Path) -> None:
+        """Adds a new org to an existing config."""
+        config_data = {
+            "default_org": "prod",
+            "orgs": {
+                "prod": {
+                    "name": "Production",
+                    "client_id": "prod-id",
+                    "client_secret": "prod-secret",
+                },
+            },
+        }
+        path = tmp_path / "config.yaml"
+        path.write_text(yaml.dump(config_data))
+
+        config = ensure_org(
+            "new-org",
+            client_id="new-id",
+            client_secret="new-secret",
+            path=path,
+        )
+
+        assert "new-org" in config.orgs
+        assert config.orgs["new-org"].client_id == "new-id"
+        assert config.orgs["new-org"].client_secret == "new-secret"
+
+    def test_ensure_org_creates_config_if_missing(self, tmp_path: Path) -> None:
+        """Creates a new config file if it does not exist."""
+        path = tmp_path / "missing.yaml"
+        assert not path.exists()
+
+        config = ensure_org(
+            "fresh",
+            client_id="fresh-id",
+            client_secret="fresh-secret",
+            path=path,
+        )
+
+        assert path.exists()
+        assert config.default_org == "fresh"
+        assert "fresh" in config.orgs
+        assert config.orgs["fresh"].client_id == "fresh-id"
+
+        # Verify file was actually saved by reloading it
+        reloaded = load_config(path=path)
+        assert reloaded.default_org == "fresh"
+        assert reloaded.orgs["fresh"].client_id == "fresh-id"

@@ -39,9 +39,7 @@ def seed_command(
     config = require_config()
     org_name = org or config.default_org
     if org_name is None:
-        console.print(
-            "[red]No default org set. Specify --org or set default_org in config.[/red]"
-        )
+        console.print("[red]No default org set. Specify --org or set default_org in config.[/red]")
         raise typer.Exit(code=1)
     console.print(f"[dim]Running seed on {org_name}...[/dim]")
     try:
@@ -217,19 +215,28 @@ async def _cleanup(
     client_id, client_secret = resolve_credentials(org_name, config)  # type: ignore[arg-type]
 
     total_entities = (
-        len(GROUPS) + len(TEAMS) + len(ENVIRONMENTS) + len(GITHUB_ORGANIZATIONS)
-        + len(GITHUB_USERS) + len(JIRA_PROJECTS) + len(JIRA_USERS)
-        + len(GITHUB_TEAMS) + len(_generate_github_repositories())
-        + len(MICROSERVICES) + len(SERVICES) + len(_generate_github_pull_requests())
-        + len(_generate_jira_issues()) + len(_generate_deployments()) + len(WORKLOADS)
+        len(GROUPS)
+        + len(TEAMS)
+        + len(ENVIRONMENTS)
+        + len(GITHUB_ORGANIZATIONS)
+        + len(GITHUB_USERS)
+        + len(JIRA_PROJECTS)
+        + len(JIRA_USERS)
+        + len(GITHUB_TEAMS)
+        + len(_generate_github_repositories())
+        + len(MICROSERVICES)
+        + len(SERVICES)
+        + len(_generate_github_pull_requests())
+        + len(_generate_jira_issues())
+        + len(_generate_deployments())
+        + len(WORKLOADS)
     )
 
     # Cleanup panel
     console.print()
     console.print(
         Panel(
-            "[bold]Cleanup Demo Data[/bold]\n"
-            "Remove all seeded demo resources",
+            "[bold]Cleanup Demo Data[/bold]\nRemove all seeded demo resources",
             border_style="yellow",
         )
     )
@@ -264,8 +271,7 @@ async def _cleanup(
     console.print()
     console.print(
         Panel(
-            f"[green bold]\\u2713 Demo data cleaned up![/green bold]\n"
-            f"Removed {deleted} resources",
+            f"[green bold]\\u2713 Demo data cleaned up![/green bold]\nRemoved {deleted} resources",
             border_style="green",
         )
     )

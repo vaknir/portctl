@@ -1,0 +1,19 @@
+identifier: githubPullRequests
+title: Pull Requests
+type: blueprint-entities
+icon: Github
+widgets:
+- id: githubPullRequest-explorer
+  type: table-entities-explorer
+  blueprint: githubPullRequest
+  dataset:
+    combinator: and
+    rules: []
+  blueprintConfig:
+    githubPullRequest:
+      groupSettings:
+        groupBy: []
+      propertiesSettings:
+        order: []
+locked: false
+parent: catalog_tables

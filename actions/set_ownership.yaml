@@ -1,0 +1,38 @@
+identifier: set_ownership
+title: Own services
+blueprint: ''
+trigger:
+  type: self-service
+  operation: DAY-2
+  userInputs:
+    properties:
+      services_owned_by_this_team:
+        title: Services owned by this team
+        icon: DefaultProperty
+        type: array
+        items:
+          type: string
+          format: entity
+          blueprint: service
+    required:
+    - services_owned_by_this_team
+  blueprintIdentifier: _team
+invocation_method:
+  type: WEBHOOK
+  url: https://api.getport.io/v1/migrations
+  agent: false
+  synchronized: true
+  method: POST
+  headers:
+    RUN_ID: '{{ .run.id }}'
+  body:
+    sourceBlueprint: service
+    mapping:
+      blueprint: service
+      filter: .identifier as $item | {{ .inputs.services_owned_by_this_team | map(.identifier) }} | any(. == $item)
+      entity:
+        identifier: .identifier
+        team: .relations.owning_teams + ["{{ .entity.identifier }}"] | unique
+user_properties: {}
+description: Assign service ownership to an existing team
+required_approval: false

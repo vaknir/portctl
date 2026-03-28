@@ -1,0 +1,80 @@
+identifier: githubRepositoryEntity
+title: Repository
+type: entity
+icon: Github
+widgets:
+- id: skqIdQzGa0NQo6Ix
+  type: grouper
+  displayMode: tabs
+  activeGroupUrlParam: activeTab
+  groupsOrder:
+  - Overview
+  - Related Entities
+  - Runs
+  - Audit Log
+  - Scorecards
+  - Dashboard
+  groups:
+  - title: Overview
+    widgets:
+    - id: SbnZEWqmWf5G7zp7
+      type: dashboard-widget
+      layout:
+      - height: 400
+        columns:
+        - id: J1HaZ8WsUfOr3OFE
+          size: 12
+      widgets:
+      - id: J1HaZ8WsUfOr3OFE
+        type: entity-info
+        title: Details
+        blueprint: '{{blueprint}}'
+        entity: '{{url.identifier}}'
+  - title: Related Entities
+    widgets:
+    - id: NDEQhwy6QbEQzCfn
+      type: grouper
+      title: Related Entities
+      displayMode: switch
+      groups:
+      - title: Table
+        icon: Table
+        widgets:
+        - id: Y5IN4GO1bQUpLVJQ
+          type: table-entities-explorer-by-direction
+      - title: Graph
+        icon: Relation
+        widgets:
+        - id: nuSSphlYoS6nIxBq
+          type: graph-entities-explorer
+          hiddenBlueprints: []
+          dataset:
+            combinator: or
+            rules:
+            - operator: relatedTo
+              value: '{{url.identifier}}'
+              blueprint: '{{blueprint}}'
+            - combinator: and
+              rules:
+              - operator: '='
+                value: '{{url.identifier}}'
+                property: $identifier
+              - operator: '='
+                value: '{{blueprint}}'
+                property: $blueprint
+  - title: Runs
+    widgets:
+    - title: Run Log
+      id: UIhjjrlnYYWup4G5
+      type: runs-table
+      query:
+        entity: '{{url.identifier}}'
+        blueprint: '{{blueprint}}'
+  - title: Audit Log
+    widgets:
+    - id: uCV4hbOBzYcjQ32Q
+      type: table-audit-log
+      query:
+        entity: '{{url.identifier}}'
+        blueprint: '{{blueprint}}'
+locked: false

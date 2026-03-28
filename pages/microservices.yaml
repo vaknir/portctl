@@ -1,0 +1,26 @@
+identifier: microservices
+title: Microservices
+type: blueprint-entities
+icon: Microservice
+widgets:
+- id: DaZjERe48feBCFmj
+  type: table-entities-explorer
+  blueprint: microservice
+  dataset:
+    combinator: and
+    rules: []
+  blueprintConfig:
+    microservice:
+      propertiesSettings:
+        order: []
+        shown:
+        - $identifier
+        - $updatedAt
+        - $createdAt
+        - language
+        - repository
+        - tier
+        - on_call
+        - description
+locked: false
+parent: catalog_tables
