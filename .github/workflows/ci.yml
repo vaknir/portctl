@@ -103,7 +103,9 @@ jobs:
       - name: Dependency audit (pip-audit)
         run: |
           uv pip install pip-audit
-          uv run pip-audit --desc --skip-editable
+          # CVE-2026-4539: pygments <=2.19.2 ReDoS in AdlLexer (local access only).
+          # No patched version available yet. Remove --ignore-vuln once pygments releases a fix.
+          uv run pip-audit --desc --skip-editable --ignore-vuln CVE-2026-4539
 
       - name: Security linting (bandit)
         run: |
