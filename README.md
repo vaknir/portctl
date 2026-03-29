@@ -1,5 +1,7 @@
 # portctl
 
+[![CI](https://github.com/vaknir/portctl/actions/workflows/ci.yml/badge.svg)](https://github.com/vaknir/portctl/actions/workflows/ci.yml)
+
 GitOps CLI for [Port.io](https://www.getport.io/) -- manage your developer portal configuration as versioned YAML in git.
 
 `portctl` works like `kubectl` or `terraform` for your Port.io portal: pull live config to local YAML files, review changes with a diff, push updates back, and detect drift -- all from your terminal or CI pipeline.
@@ -59,6 +61,7 @@ portctl push
 |---|---|
 | `portctl pull` | Pull portal config from Port.io to local YAML |
 | `portctl diff` | Show what would change (local vs remote) |
+| `portctl diff <org1> <org2>` | Compare config between two orgs |
 | `portctl push` | Push local YAML config to Port.io |
 | `portctl validate` | Validate YAML syntax and schema |
 | `portctl validate --remote` | Validate against the Port.io API |
@@ -81,6 +84,19 @@ portctl push
 -v, --verbose   Enable debug logging
 --help          Show help for any command
 ```
+
+## Managed Resources
+
+portctl manages four resource types as YAML files:
+
+```
+blueprints/       # Entity types (service, team, environment, ...)
+scorecards/       # Quality rules and scoring levels
+actions/          # Self-service actions and automations
+pages/            # Portal UI pages and dashboards
+```
+
+Internal/system resources (prefixed with `_` or `$`) are automatically excluded.
 
 ## Configuration
 
@@ -162,8 +178,22 @@ uv run ruff format src/ tests/
 # Type check
 uv run mypy src/portctl/
 
-# Full quality check
-uv run ruff check src/ tests/ && uv run mypy src/portctl/ && uv run pytest tests/unit/ -x --tb=short
+# Full quality check (same as CI)
+uv run ruff check src/ tests/ && uv run ruff format --check src/ tests/ && uv run mypy src/portctl/ && uv run pytest tests/unit/ -x --tb=short
+```
+
+## Project Structure
+
+```
+src/portctl/
+  cli/              # Typer commands and Rich formatters
+  services/         # Business logic (planner, applier, auditor, ...)
+  client/           # Port API wrapper (httpx async)
+  models/           # Pydantic schemas for YAML and API
+  validation/       # Layer 1 (local) + Layer 2 (remote) checks
+tests/
+  unit/             # 434 unit tests
+  integration/      # Tests against live Port API (VCR cassettes)
 ```
 
 ## Contributing
