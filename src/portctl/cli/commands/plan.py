@@ -96,13 +96,36 @@ async def _plan_run(
     org_config = get_org(config, org)
     client_id, client_secret = resolve_credentials(org, config)
 
-    with console.status("[blue]Planning...[/blue]"):
-        async with PortClient(
-            client_id=client_id,
-            client_secret=client_secret,
-            api_base=org_config.api_url,
-        ) as client:
-            result = await plan_org(client, Path.cwd(), resource_filter=resource)
+    import sys
+
+    steps = ["Validating local YAML", "Fetching remote state", "Computing diff"]
+
+    def _step(idx: int) -> None:
+        if json_output:
+            return
+        if idx > 0:
+            sys.stdout.write("\033[1A\033[2K")
+        icon = "\033[36m⠋\033[0m"
+        sys.stdout.write(f"  [{icon}] {steps[idx]}...\n")
+        sys.stdout.flush()
+
+    def _done() -> None:
+        if json_output:
+            return
+        sys.stdout.write("\033[1A\033[2K")
+        sys.stdout.write("  [\033[32m✓\033[0m] Diff complete\n\n")
+        sys.stdout.flush()
+
+    _step(0)
+    async with PortClient(
+        client_id=client_id,
+        client_secret=client_secret,
+        api_base=org_config.api_url,
+    ) as client:
+        _step(1)
+        result = await plan_org(client, Path.cwd(), resource_filter=resource)
+    _step(2)
+    _done()
 
     if json_output:
         format_plan_json(result, console)
@@ -143,20 +166,43 @@ async def _cross_org_diff_run(
     source_id, source_secret = resolve_credentials(source_org, config)
     target_id, target_secret = resolve_credentials(target_org, config)
 
-    with console.status("[blue]Fetching resources from both orgs...[/blue]"):
-        async with (
-            PortClient(
-                client_id=source_id,
-                client_secret=source_secret,
-                api_base=source_config.api_url,
-            ) as source_client,
-            PortClient(
-                client_id=target_id,
-                client_secret=target_secret,
-                api_base=target_config.api_url,
-            ) as target_client,
-        ):
-            result = await diff_orgs(source_client, target_client, resource_filter=resource)
+    import sys
+
+    steps = [f"Fetching {source_org}", f"Fetching {target_org}", "Computing diff"]
+
+    def _step(idx: int) -> None:
+        if json_output:
+            return
+        if idx > 0:
+            sys.stdout.write("\033[1A\033[2K")
+        icon = "\033[36m⠋\033[0m"
+        sys.stdout.write(f"  [{icon}] {steps[idx]}...\n")
+        sys.stdout.flush()
+
+    def _done() -> None:
+        if json_output:
+            return
+        sys.stdout.write("\033[1A\033[2K")
+        sys.stdout.write("  [\033[32m✓\033[0m] Diff complete\n\n")
+        sys.stdout.flush()
+
+    _step(0)
+    async with (
+        PortClient(
+            client_id=source_id,
+            client_secret=source_secret,
+            api_base=source_config.api_url,
+        ) as source_client,
+        PortClient(
+            client_id=target_id,
+            client_secret=target_secret,
+            api_base=target_config.api_url,
+        ) as target_client,
+    ):
+        _step(1)
+        result = await diff_orgs(source_client, target_client, resource_filter=resource)
+    _step(2)
+    _done()
 
     if json_output:
         format_cross_org_diff_json(result, source_org, target_org, console)
