@@ -15,6 +15,7 @@ from portctl.services.ignore import load_ignore_filter
 from portctl.validation.pipeline import validate
 
 if TYPE_CHECKING:
+    from collections.abc import Callable
     from pathlib import Path
 
     from portctl.client.port_client import PortClient
@@ -517,6 +518,7 @@ async def plan_org(
     client: PortClient,
     config_dir: Path,
     resource_filter: str | None = None,
+    on_step: Callable[[str, str], None] | None = None,
 ) -> PlanResult:
     """Compare local YAML against live Port state.
 
@@ -535,12 +537,21 @@ async def plan_org(
         config_dir: Root directory containing blueprints/, scorecards/, etc.
         resource_filter: Optional filter -- "blueprints", "scorecards",
             "actions", or "pages".
+        on_step: Optional callback ``(step_name, status)`` where status is
+            ``"start"`` or ``"done"``. Used to drive progress display.
 
     Returns:
         A PlanResult with all detected changes.
     """
+
+    def _notify(name: str, status: str) -> None:
+        if on_step is not None:
+            on_step(name, status)
+
     # Step 1: Run Layer 1 validation
+    _notify("Validating", "start")
     validation_result = validate(config_dir)
+    _notify("Validating", "done")
     if validation_result.has_errors:
         return PlanResult(changes=[], validation_result=validation_result)
 
@@ -552,7 +563,8 @@ async def plan_org(
     local_actions = _load_local_actions(config_dir)
     local_pages = _load_local_pages(config_dir)
 
-    # Step 3: Fetch remote state
+    # Step 3: Fetch remote state and diff per resource type
+    _notify("Blueprints", "start")
     remote_blueprints = await _fetch_remote_blueprints(client)
 
     # Fetch remote resources that depend on blueprint IDs
@@ -583,6 +595,7 @@ async def plan_org(
     remote_pages = {k: v for k, v in remote_pages.items() if not ignore.is_ignored("pages", k)}
 
     # Step 4: Diff blueprints
+    _notify("Blueprints", "done")
     if resource_filter is None or resource_filter == "blueprints":
         # Local only -> create
         for identifier, local_data in local_blueprints.items():
@@ -621,6 +634,7 @@ async def plan_org(
                 )
 
     # Step 4b: Diff scorecards
+    _notify("Scorecards", "start")
     if resource_filter is None or resource_filter == "scorecards":
         # Local only -> create
         for identifier, local_data in local_scorecards.items():
@@ -658,7 +672,10 @@ async def plan_org(
                     )
                 )
 
+    _notify("Scorecards", "done")
+
     # Step 4c: Diff actions
+    _notify("Actions", "start")
     if resource_filter is None or resource_filter == "actions":
         for identifier, local_data in local_actions.items():
             if identifier not in remote_actions:
@@ -693,7 +710,10 @@ async def plan_org(
                     )
                 )
 
+    _notify("Actions", "done")
+
     # Step 4d: Diff pages
+    _notify("Pages", "start")
     if resource_filter is None or resource_filter == "pages":
         for identifier, local_data in local_pages.items():
             if identifier not in remote_pages:
@@ -726,6 +746,8 @@ async def plan_org(
                         breaking=True,
                     )
                 )
+
+    _notify("Pages", "done")
 
     return PlanResult(
         changes=changes,

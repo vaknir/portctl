@@ -15,6 +15,8 @@ from portctl.services.planner import (
 )
 
 if TYPE_CHECKING:
+    from collections.abc import Callable
+
     from portctl.client.port_client import PortClient
 
 
@@ -145,6 +147,7 @@ async def diff_orgs(
     source_client: PortClient,
     target_client: PortClient,
     resource_filter: str | None = None,
+    on_step: Callable[[str, str], None] | None = None,
 ) -> CrossOrgDiffResult:
     """Compare two live Port.io orgs and return the differences.
 
@@ -163,9 +166,15 @@ async def diff_orgs(
     Returns:
         A CrossOrgDiffResult with all detected differences.
     """
+
+    def _notify(name: str, status: str) -> None:
+        if on_step is not None:
+            on_step(name, status)
+
     changes: list[ResourceChange] = []
 
     # Fetch blueprints from both orgs (always needed for scorecard/action lookup)
+    _notify("Fetching source", "start")
     source_blueprints = await _fetch_remote_blueprints(source_client)
     target_blueprints = await _fetch_remote_blueprints(target_client)
 
@@ -181,8 +190,13 @@ async def diff_orgs(
 
     source_pages = await _fetch_remote_pages(source_client)
     target_pages = await _fetch_remote_pages(target_client)
+    _notify("Fetching source", "done")
+
+    _notify("Fetching target", "start")
+    _notify("Fetching target", "done")
 
     # Diff blueprints
+    _notify("Computing diff", "start")
     if resource_filter is None or resource_filter == "blueprints":
         changes.extend(_diff_resource_sets(source_blueprints, target_blueprints, "blueprint"))
 
@@ -197,5 +211,7 @@ async def diff_orgs(
     # Diff pages
     if resource_filter is None or resource_filter == "pages":
         changes.extend(_diff_resource_sets(source_pages, target_pages, "page"))
+
+    _notify("Computing diff", "done")
 
     return CrossOrgDiffResult(changes=changes)

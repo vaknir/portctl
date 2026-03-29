@@ -77,6 +77,7 @@ async def _apply_run(
     from datetime import UTC, datetime
 
     from portctl.cli.formatters.diffs import format_plan
+    from portctl.cli.formatters.progress import format_push_summary, make_push_progress
     from portctl.client.port_client import PortClient
     from portctl.services.applier import apply_org
     from portctl.services.auth import resolve_credentials
@@ -87,14 +88,19 @@ async def _apply_run(
     org_config = get_org(config, org)
     client_id, client_secret = resolve_credentials(org, config)
 
+    from portctl.cli.formatters.progress import StepProgress
+
     async with PortClient(
         client_id=client_id,
         client_secret=client_secret,
         api_base=org_config.api_url,
     ) as client:
-        # Step 1: Run plan internally
-        with console.status("[blue]Planning...[/blue]"):
-            plan = await plan_org(client, Path.cwd(), resource_filter=resource)
+        # Step 1: Run plan internally with resource-level progress
+        progress = StepProgress(quiet=False)
+        plan = await plan_org(
+            client, Path.cwd(), resource_filter=resource, on_step=progress.make_callback()
+        )
+        progress.finish()
 
         # Step 2: No changes -> exit 0
         if not plan.has_changes:
@@ -117,53 +123,40 @@ async def _apply_run(
                 console.print("[yellow]Push cancelled.[/yellow]")
                 raise typer.Exit(code=0)
 
-        # Step 5: Apply changes
-        with console.status("[blue]Pushing...[/blue]"):
-            result = await apply_org(client, plan, prune=prune, config_dir=Path.cwd())
+        # Step 5: Apply changes with progress bar
+        total_changes = len(plan.changes)
+        push_progress = make_push_progress(console, total=total_changes)
 
-    # Step 6: Print per-resource results
-    for r in result.results:
-        resource_label = r.resource_type.capitalize()
-        if r.success:
-            symbol = {
-                "created": "+",
-                "updated": "~",
-                "deleted": "-",
-            }.get(r.action, "?")
-            color = {
-                "created": "green",
-                "updated": "yellow",
-                "deleted": "red",
-            }.get(r.action, "white")
-            console.print(
-                f"  [{color}]{symbol}[/{color}] {resource_label}: {r.identifier} ({r.action})"
+        def _on_progress(_r: object) -> None:
+            push_progress.advance()
+
+        with push_progress:
+            result = await apply_org(
+                client, plan, prune=prune, config_dir=Path.cwd(), on_progress=_on_progress
             )
-        else:
+
+    # Step 6: Print per-resource results (inline errors only)
+    for r in result.results:
+        if not r.success:
+            resource_label = r.resource_type.capitalize()
             console.print(
                 f"  [red]x[/red] {resource_label}: {r.identifier} ({r.action}) -- {r.error}"
             )
 
-    # Step 7: Print summary
+    # Step 7: Print summary panel
     console.print()
-    if result.has_failures:
-        console.print(
-            f"[red]Push complete with errors[/red] "
-            f"[dim]|[/dim] {result.created_count} created "
-            f"[dim]|[/dim] {result.updated_count} updated "
-            f"[dim]|[/dim] {result.deleted_count} deleted "
-            f"[dim]|[/dim] {result.failed_count} failed"
+    git_commit = _get_git_commit()
+    console.print(
+        format_push_summary(
+            created=result.created_count,
+            updated=result.updated_count,
+            deleted=result.deleted_count,
+            failed=result.failed_count,
+            git_commit=git_commit,
         )
-    else:
-        console.print(
-            f"[green]Push complete[/green] "
-            f"[dim]|[/dim] {result.created_count} created "
-            f"[dim]|[/dim] {result.updated_count} updated "
-            f"[dim]|[/dim] {result.deleted_count} deleted "
-            f"[dim]|[/dim] {result.failed_count} failed"
-        )
+    )
 
     # Step 8: Record to state
-    git_commit = _get_git_commit()
     resources_changed = [f"{r.resource_type}:{r.identifier}" for r in result.results if r.success]
     event = ApplyEvent(
         org=org,

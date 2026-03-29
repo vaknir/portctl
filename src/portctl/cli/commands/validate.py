@@ -77,13 +77,27 @@ async def _validate_remote(config_dir: Path, org_name: str | None) -> None:
     org_config = get_org(config, resolved_org)
     client_id, client_secret = resolve_credentials(resolved_org, config)
 
-    with console.status("[blue]Validating against remote...[/blue]"):
-        async with PortClient(
-            client_id=client_id,
-            client_secret=client_secret,
-            api_base=org_config.api_url,
-        ) as client:
-            result = await validate_remote(config_dir, client)
+    from portctl.cli.formatters.progress import StepProgress
+
+    progress = StepProgress(quiet=False)
+    progress.start("Layer 1 (local)")
+    l1_result = validate(config_dir)
+    progress.complete("Layer 1 (local)")
+
+    if l1_result.has_errors:
+        progress.finish()
+        _print_result(l1_result, remote=True)
+        return
+
+    progress.start("Layer 2 (remote)")
+    async with PortClient(
+        client_id=client_id,
+        client_secret=client_secret,
+        api_base=org_config.api_url,
+    ) as client:
+        result = await validate_remote(config_dir, client)
+    progress.complete("Layer 2 (remote)")
+    progress.finish()
 
     _print_result(result, remote=True)
 
@@ -93,44 +107,23 @@ def _print_result(
     *,
     remote: bool = False,
 ) -> None:
-    """Format and print validation results.
+    """Format and print validation results as layered gates.
 
     Args:
         result: The validation result to display.
         remote: Whether remote checks were included.
     """
-    if not result.issues:
-        label = "Local + remote" if remote else "Local YAML"
-        console.print(f"[green]{label} validation passed.[/green]")
-        if not remote:
-            console.print(
-                "[dim]Run 'portctl validate --remote' to also check against the live API.[/dim]"
-            )
-        raise typer.Exit(code=0)
+    from portctl.cli.formatters.progress import format_validation_gate
 
-    for issue in result.issues:
-        location = issue.file_path
-        if issue.line is not None:
-            location = f"{location}:{issue.line}"
-
-        icon = "[red]x[/red]" if issue.severity == "error" else "[yellow]![/yellow]"
-
-        console.print(f"  {icon} {location} -> {issue.message}")
-        if issue.suggestion:
-            console.print(f"    [dim]{issue.suggestion}[/dim]")
-
-    error_count = result.error_count
-    warning_count = len(result.issues) - error_count
-
-    parts: list[str] = []
-    if error_count:
-        parts.append(f"[red]{error_count} error(s)[/red]")
-    if warning_count:
-        parts.append(f"[yellow]{warning_count} warning(s)[/yellow]")
-
-    console.print()
-    console.print(f"{' . '.join(parts)} -- fix before pushing")
+    # Infer layer partitioning: if remote=True and there are errors, they must be
+    # layer 1 errors because layer2 is skipped when layer1 fails.
+    layer1_ok = not result.has_errors
+    console.print(format_validation_gate(result.issues, remote=remote, layer1_ok=layer1_ok))
 
     if result.has_errors:
         raise typer.Exit(code=1)
+    if not remote and not result.issues:
+        console.print(
+            "\n[dim]Run 'portctl validate --remote' to also check against the live API.[/dim]"
+        )
     raise typer.Exit(code=0)

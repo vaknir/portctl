@@ -8,13 +8,14 @@ from typing import TYPE_CHECKING, Optional
 
 import typer
 from rich.console import Console
-from rich.table import Table
 
 from portctl.exceptions import PortctlError
 
 if TYPE_CHECKING:
+    from typing import Any
+
     from portctl.models.config import PortctlConfig
-    from portctl.services.auditor import AuditResult
+    from portctl.services.auditor import AuditResult, DriftItem
 
 console = Console()
 
@@ -82,6 +83,7 @@ async def _audit_run(
     """
     from pathlib import Path
 
+    from portctl.cli.formatters.progress import StepProgress
     from portctl.client.port_client import PortClient
     from portctl.services.auditor import audit_org
     from portctl.services.auth import resolve_credentials
@@ -90,62 +92,169 @@ async def _audit_run(
     org_config = get_org(config, org)
     client_id, client_secret = resolve_credentials(org, config)
 
-    with console.status("[blue]Auditing...[/blue]"):
-        async with PortClient(
-            client_id=client_id,
-            client_secret=client_secret,
-            api_base=org_config.api_url,
-        ) as client:
-            result = await audit_org(client, Path.cwd(), resource_filter=resource)
+    progress = StepProgress(quiet=output_format == "json")
+
+    async with PortClient(
+        client_id=client_id,
+        client_secret=client_secret,
+        api_base=org_config.api_url,
+    ) as client:
+        result = await audit_org(
+            client, Path.cwd(), resource_filter=resource, on_step=progress.make_callback()
+        )
+    progress.finish()
 
     if output_format == "json":
         _format_audit_json(result)
     else:
-        _format_audit_table(result)
+        _format_audit_report(result)
 
     if result.has_drift:
         raise typer.Exit(code=1)
 
 
-def _format_audit_table(result: AuditResult) -> None:
-    """Print audit results as a rich table.
+def _format_diff_details(diff: dict[str, Any]) -> list[str]:
+    """Extract readable change descriptions from a DeepDiff dict.
+
+    Args:
+        diff: A DeepDiff result dict.
+
+    Returns:
+        List of human-readable change strings.
+    """
+    lines: list[str] = []
+
+    for path, change in diff.get("values_changed", {}).items():
+        clean = path.replace("root", "").replace("['", ".").replace("']", "").lstrip(".")
+        old = change.get("old_value", "?")
+        new = change.get("new_value", "?")
+        lines.append(f"~ {clean}: {old} → {new}")
+
+    for path in diff.get("dictionary_item_added", {}):
+        clean = str(path).replace("root", "").replace("['", ".").replace("']", "").lstrip(".")
+        lines.append(f"+ {clean}")
+
+    for path in diff.get("dictionary_item_removed", {}):
+        clean = str(path).replace("root", "").replace("['", ".").replace("']", "").lstrip(".")
+        lines.append(f"- {clean}")
+
+    for _path, value in diff.get("iterable_item_added", {}).items():
+        label = value.get("identifier", "") if isinstance(value, dict) else ""
+        lines.append(f"+ {label or 'item'}")
+
+    for _path, value in diff.get("iterable_item_removed", {}).items():
+        label = value.get("identifier", "") if isinstance(value, dict) else ""
+        lines.append(f"- {label or 'item'}")
+
+    return lines
+
+
+def _format_attribution(drift: DriftItem) -> str:
+    """Format who/when for a drift item.
+
+    Args:
+        drift: A DriftItem with optional updated_by and updated_at.
+
+    Returns:
+        Attribution string like "by user@email 2h ago" or "".
+    """
+    parts: list[str] = []
+    if drift.updated_by:
+        parts.append(f"by {drift.updated_by}")
+    if drift.updated_at:
+        parts.append(_relative_time(drift.updated_at))
+    return " ".join(parts)
+
+
+def _relative_time(iso_str: str) -> str:
+    """Convert an ISO timestamp to a relative time string.
+
+    Args:
+        iso_str: ISO 8601 timestamp string.
+
+    Returns:
+        Relative time like "2h ago", "3d ago".
+    """
+    from datetime import UTC, datetime
+
+    try:
+        dt = datetime.fromisoformat(iso_str.replace("Z", "+00:00"))
+        delta = datetime.now(tz=UTC) - dt
+        seconds = int(delta.total_seconds())
+        if seconds < 60:
+            return "just now"
+        if seconds < 3600:
+            return f"{seconds // 60}m ago"
+        if seconds < 86400:
+            return f"{seconds // 3600}h ago"
+        return f"{seconds // 86400}d ago"
+    except (ValueError, TypeError):
+        return ""
+
+
+def _format_audit_report(result: AuditResult) -> None:
+    """Print audit results as a grouped drift report.
 
     Args:
         result: The audit result to display.
     """
+    from portctl.cli.formatters.diffs import render_change_panel
+    from portctl.services.planner import ResourceChange
+
     if not result.has_drift:
         console.print("[green]No drift detected.[/green]")
         return
 
-    table = Table(title="Configuration Drift")
-    table.add_column("Type", style="bold")
-    table.add_column("Identifier", style="bold")
-    table.add_column("Drift", style="bold")
-    table.add_column("Details")
+    console.print("[bold]Configuration Drift Report[/bold]\n")
 
+    # Group drifts by resource type
+    grouped: dict[str, list[DriftItem]] = {}
     for drift in result.drifts:
-        color = _DRIFT_COLORS.get(drift.drift_type, "white")
-        label = _DRIFT_LABELS.get(drift.drift_type, drift.drift_type)
+        grouped.setdefault(drift.resource_type, []).append(drift)
 
-        details = ""
-        if drift.diff is not None:
-            changed_keys: list[str] = []
-            for _diff_type_key, changes in drift.diff.items():
-                if isinstance(changes, dict):
-                    changed_keys.extend(changes.keys())
-            details = ", ".join(changed_keys[:5])
-            if len(changed_keys) > 5:
-                details += f" (+{len(changed_keys) - 5} more)"
+    for resource_type in ("blueprint", "scorecard", "action", "page"):
+        drifts = grouped.get(resource_type, [])
+        if not drifts:
+            continue
 
-        table.add_row(
-            drift.resource_type.capitalize(),
-            drift.identifier,
-            f"[{color}]{label}[/{color}]",
-            details,
-        )
+        console.print(f"[bold]{resource_type.capitalize()}s[/bold]")
 
-    console.print(table)
-    console.print(f"\n[yellow]{result.drift_count} resource(s) drifted.[/yellow]")
+        for drift in drifts:
+            if drift.drift_type == "modified" and drift.diff is not None:
+                change = ResourceChange(
+                    resource_type=drift.resource_type,
+                    identifier=drift.identifier,
+                    action="update",
+                    diff=drift.diff,
+                )
+                console.print(render_change_panel(change))
+            else:
+                symbol = "+" if drift.drift_type == "added_remotely" else "-"
+                color = "green" if drift.drift_type == "added_remotely" else "red"
+                label = (
+                    "added remotely" if drift.drift_type == "added_remotely" else "removed remotely"
+                )
+                console.print(f"  [{color}]{symbol}[/{color}] {drift.identifier} ({label})")
+                attribution = _format_attribution(drift)
+                if attribution:
+                    console.print(f"    [dim]{attribution}[/dim]")
+
+        console.print()
+
+    # Summary
+    added = sum(1 for d in result.drifts if d.drift_type == "added_remotely")
+    removed = sum(1 for d in result.drifts if d.drift_type == "removed_remotely")
+    modified = sum(1 for d in result.drifts if d.drift_type == "modified")
+    parts: list[str] = []
+    if added:
+        parts.append(f"[green]{added} added[/green]")
+    if removed:
+        parts.append(f"[red]{removed} removed[/red]")
+    if modified:
+        parts.append(f"[yellow]{modified} modified[/yellow]")
+    summary = f"Summary: {', '.join(parts)}  |  "
+    summary += f"[bold]{result.drift_count} resource(s) drifted[/bold]"
+    console.print(summary)
 
 
 def _format_audit_json(result: AuditResult) -> None:

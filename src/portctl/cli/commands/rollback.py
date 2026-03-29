@@ -91,6 +91,7 @@ async def _rollback_run(
     from datetime import UTC, datetime
 
     from portctl.cli.formatters.diffs import format_plan
+    from portctl.cli.formatters.progress import StepProgress
     from portctl.client.port_client import PortClient
     from portctl.models.config import PortctlConfig
     from portctl.services.auth import resolve_credentials
@@ -145,8 +146,9 @@ async def _rollback_run(
                 from portctl.services.rollback import _checkout_files_at_commit
 
                 _checkout_files_at_commit(target.git_commit, directory, temp_path)
-                with console.status("[blue]Planning rollback...[/blue]"):
-                    plan = await plan_org(client, temp_path)
+                progress = StepProgress(quiet=False)
+                plan = await plan_org(client, temp_path, on_step=progress.make_callback())
+                progress.finish()
             except Exception as exc:
                 temp_dir_obj.cleanup()
                 console.print(
@@ -156,8 +158,9 @@ async def _rollback_run(
         else:
             temp_dir_obj = None
             temp_path = None
-            with console.status("[blue]Planning rollback...[/blue]"):
-                plan = await plan_org(client, directory)
+            progress = StepProgress(quiet=False)
+            plan = await plan_org(client, directory, on_step=progress.make_callback())
+            progress.finish()
 
         # Step 4: Check for changes
         if not plan.has_changes:

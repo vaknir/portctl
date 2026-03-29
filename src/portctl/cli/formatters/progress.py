@@ -65,8 +65,15 @@ class PullProgress:
         self._printed = True
 
     def __enter__(self) -> PullProgress:
-        """Enter context manager."""
-        self._print()
+        """Enter context manager — print initial waiting state."""
+        import sys
+
+        # Print initial state without setting _printed, so the first
+        # update will overwrite these lines cleanly.
+        for name in self._status:
+            sys.stdout.write(f"\033[2K  [○] {name}: waiting...\n")
+        sys.stdout.flush()
+        self._printed = True
         return self
 
     def __exit__(self, exc_type: Any, exc_val: Any, exc_tb: Any) -> None:
@@ -81,6 +88,98 @@ class PullProgress:
 def make_pull_progress(console: Console) -> PullProgress:
     """Create a progress display for pull operations."""
     return PullProgress(console)
+
+
+class StepProgress:
+    """Generic step-by-step progress for any multi-resource operation.
+
+    Displays live-updating steps with spinner/check/waiting icons using
+    direct ANSI escapes via sys.stdout.write (not Rich, which escapes ANSI codes).
+    """
+
+    def __init__(self, *, quiet: bool = False) -> None:
+        """Initialize step progress.
+
+        Args:
+            quiet: If True, suppresses all output (for JSON mode).
+        """
+        self._quiet = quiet
+        self._steps: dict[str, tuple[str, str]] = {}  # name -> (status, detail)
+        self._printed = False
+
+    def start(self, name: str) -> None:
+        """Mark a step as in-progress.
+
+        Args:
+            name: The step name to display.
+        """
+        self._steps[name] = ("running", "")
+        self._print()
+
+    def complete(self, name: str, detail: str = "") -> None:
+        """Mark a step as done with optional detail.
+
+        Args:
+            name: The step name to mark complete.
+            detail: Optional detail text (e.g. "15 checked").
+        """
+        self._steps[name] = ("done", detail)
+        self._print()
+
+    def finish(self) -> None:
+        """Print final newline after all steps done."""
+        if not self._quiet:
+            import sys
+
+            sys.stdout.write("\n")
+            sys.stdout.flush()
+
+    def _print(self) -> None:
+        """Render all steps, overwriting previous output."""
+        if self._quiet:
+            return
+
+        import sys
+
+        lines: list[str] = []
+        for name, (status, detail) in self._steps.items():
+            if status == "done":
+                icon = "\033[32m\u2713\033[0m"
+                suffix = f": {detail}" if detail else ""
+                line = f"  [{icon}] {name}{suffix}"
+            elif status == "running":
+                icon = "\033[36m\u280b\033[0m"
+                line = f"  [{icon}] {name}: checking..."
+            else:
+                icon = "\u25cb"
+                line = f"  [{icon}] {name}: waiting..."
+            lines.append(line)
+
+        if self._printed:
+            sys.stdout.write(f"\033[{len(lines)}A")
+
+        for line in lines:
+            sys.stdout.write(f"\033[2K{line}\n")
+        sys.stdout.flush()
+        self._printed = True
+
+    def make_callback(self) -> Any:
+        """Create an on_step callback for service layer functions.
+
+        Returns:
+            A callback function with signature ``(name: str, status: str) -> None``
+            that drives this progress display, or None if quiet.
+        """
+        if self._quiet:
+            return None
+
+        def _on_step(name: str, status: str) -> None:
+            if status == "start":
+                self.start(name)
+            elif status == "done":
+                self.complete(name)
+
+        return _on_step
 
 
 class PushProgress:
